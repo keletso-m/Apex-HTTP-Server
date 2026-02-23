@@ -7,7 +7,7 @@ A high-performance, production-grade HTTP/1.1 server built from scratch in C++ u
 
 ---
 
-## 🎯 Project Goals
+## Project Goals
 
 Build a professional HTTP server that demonstrates:
 - Deep understanding of network programming and TCP/IP
@@ -20,7 +20,7 @@ Build a professional HTTP server that demonstrates:
 
 ---
 
-## ✨ Features
+## Features
 
 ### Current Features
 - [ ] TCP socket server with connection handling
@@ -42,7 +42,7 @@ Build a professional HTTP server that demonstrates:
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 ```
 ┌─────────────────────────────────────────┐
 │         Client Requests                 │
@@ -73,7 +73,7 @@ Build a professional HTTP server that demonstrates:
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Linux (Ubuntu 20.04+ or similar)
@@ -106,7 +106,7 @@ open http://localhost:8080/
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 ```
 apex-http-server/
 ├── src/
@@ -127,7 +127,7 @@ apex-http-server/
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 Example `config/server.conf`:
 ```ini
@@ -148,7 +148,7 @@ request_timeout = 30
 
 ---
 
-## 📊 Performance
+## Performance
 
 *Benchmarks will be added as development progresses*
 
@@ -159,7 +159,7 @@ Target performance:
 
 ---
 
-## 🧪 Testing
+## Testing
 ```bash
 # Run unit tests
 make test
@@ -173,7 +173,7 @@ make benchmark
 
 ---
 
-## 🛠️ Development
+## Development
 
 ### Build Options
 ```bash
@@ -193,7 +193,7 @@ make benchmark    # Run performance tests
 
 ---
 
-## 📚 Learning Resources
+## Learning Resources
 
 This project was built by learning from:
 - [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/)
@@ -203,7 +203,7 @@ This project was built by learning from:
 
 ---
 
-## 🗺️ Development Roadmap {#roadmap}
+## Development Roadmap {#roadmap}
 
 ### Phase 1: Foundation (Weeks 1-2)
 - [x] Project setup
@@ -239,7 +239,7 @@ This project was built by learning from:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 This is a learning project, but feedback and suggestions are welcome!
 
@@ -250,13 +250,13 @@ This is a learning project, but feedback and suggestions are welcome!
 
 ---
 
-## 📝 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details
 
 ---
 
-## 👤 Author
+## Author
 
 **[keletso monyamane]**
 - GitHub: [@yourusername](https://github.com/yourusername)
@@ -264,7 +264,7 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 Built as a learning project to understand:
 - Network programming fundamentals
