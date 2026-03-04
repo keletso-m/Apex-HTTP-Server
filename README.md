@@ -259,8 +259,7 @@ MIT License - see [LICENSE](LICENSE) file for details
 ## Author
 
 **[keletso monyamane]**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
+- GitHub: [@keletso-m](https://github.com/keletso-m)
 
 ---
 
