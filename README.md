@@ -259,12 +259,15 @@ MIT License - see [LICENSE](LICENSE) file for details
 ## Author
 
 **[keletso monyamane]**
+<<<<<<< HEAD
 - GitHub: [@keletso-m](https://github.com/keletso-m)
+======
+
+>>>>>>> 38b65d5 (type: added gitignore)
 
 ---
 
 ## Acknowledgments
-
 Built as a learning project to understand:
 - Network programming fundamentals
 - Linux system programming
