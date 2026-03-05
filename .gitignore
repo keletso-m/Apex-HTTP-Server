@@ -1,0 +1,29 @@
+# build artifacts
+build/
+bin/
+*.o
+*.a
+*.so
+
+# executables
+apex-server
+
+# logs
+logs/
+*.log
+
+# editor files
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# test outputs
+coverage/
+benchmark-results/
+
+# compile database
+compile_commands.json
+
+
