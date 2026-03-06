@@ -205,33 +205,33 @@ This project was built by learning from:
 
 ## Development Roadmap {#roadmap}
 
-### Phase 1: Foundation (Weeks 1-2)
+### Phase 1: Foundation
 - [x] Project setup
-- [ ] Basic TCP server
-- [ ] Accept connections
-- [ ] Echo server test
-- [ ] HTTP request parsing
-- [ ] Static file serving
+- [x] Basic TCP server
+- [x] Accept connections
+- [x] Echo server test
+- [x] HTTP request parsing
+- [x] Static file serving
 
-### Phase 2: Concurrency (Weeks 3-4)
+### Phase 2: Concurrency 
 - [ ] Thread pool implementation
 - [ ] Request queue
 - [ ] Thread-safe logging
 - [ ] Graceful shutdown
 
-### Phase 3: Production Features (Weeks 5-6)
+### Phase 3: Production Features 
 - [ ] Configuration system
 - [ ] Structured logging
 - [ ] Error handling
 - [ ] Request routing
 
-### Phase 4: Performance (Weeks 7-8)
+### Phase 4: Performance 
 - [ ] epoll integration
 - [ ] Benchmarking suite
 - [ ] Performance profiling
 - [ ] Memory optimization
 
-### Phase 5: Deployment (Weeks 9-10)
+### Phase 5: Deployment 
 - [ ] Docker container
 - [ ] systemd service
 - [ ] Monitoring (Prometheus)
@@ -259,11 +259,7 @@ MIT License - see [LICENSE](LICENSE) file for details
 ## Author
 
 **[keletso monyamane]**
-<<<<<<< HEAD
 - GitHub: [@keletso-m](https://github.com/keletso-m)
-======
-
->>>>>>> 38b65d5 (type: added gitignore)
 
 ---
 
