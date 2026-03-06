@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apex HTTP Server</title>
+  <style>
+    body { font-family: monospace; max-width: 640px; margin: 80px auto; background: #0d1117; color: #c9d1d9; }
+    h1   { color: #58a6ff; }
+    code { background: #161b22; padding: 2px 6px; border-radius: 4px; color: #79c0ff; }
+    .ok  { color: #3fb950; }
+  </style>
+</head>
+<body>
+  <h1>⚡ Apex HTTP Server</h1>
+  <p class="ok">✅ Phase 1 is working — static file serving is live.</p>
+  <p>Your server successfully:</p>
+  <ul>
+    <li>Opened a TCP socket and bound to port <code>8080</code></li>
+    <li>Accepted your connection</li>
+    <li>Parsed your HTTP/1.1 GET request</li>
+    <li>Served this file from <code>./www/index.html</code></li>
+  </ul>
+  <p>Next up: <strong>Phase 2 — Thread Pool &amp; Concurrency</strong></p>
+</body>
+</html>
