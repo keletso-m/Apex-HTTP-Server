@@ -23,7 +23,7 @@ Build a professional HTTP server that demonstrates:
 ## Features
 
 ### Current Features
-- [ ] TCP socket server with connection handling
+- [X] TCP socket server with connection handling
 - [ ] HTTP/1.1 request parsing
 - [ ] Static file serving
 - [ ] Multi-threaded request handling
@@ -214,7 +214,7 @@ This project was built by learning from:
 - [x] Static file serving
 
 ### Phase 2: Concurrency 
-- [ ] Thread pool implementation
+- [X] Thread pool implementation
 - [ ] Request queue
 - [ ] Thread-safe logging
 - [ ] Graceful shutdown
