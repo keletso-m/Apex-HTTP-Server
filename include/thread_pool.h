@@ -1,9 +1,9 @@
-#pragma once
+#pragma once // header guard to include header only once per compilation unit 
 #include <vector>
 #include <queue>
 #include <thread>
 #include <mutex>
-#include <condition_variable>
+#include <condition_variable>  // thread synchonisation
 #include <functional>
 #include <atomic>
 #include <string>
@@ -16,9 +16,9 @@ struct WorkItem{
 class ThreadPool {
 public:
     explicit ThreadPool(size_t num_thread, size_t max_queue_size);
-    ~ThreadPool();   
+    ~ThreadPool();  // return false if the queue is full  caler should reject with 503
     bool enqueue(WorkItem item);
-    void stop();
+    void stop();   // drain queue athen shut down the pool
     void set_handler(std::function<void(WorkItem)> handler);
     
 private:
