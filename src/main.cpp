@@ -53,8 +53,8 @@ int main() {
     };
 
     try {
-        TCPServer server(HOST, PORT, /*backlog=*/10);
-        g_server = &server;
+        static const size_t THREADS = 4;
+        TCPServer server(HOST, PORT, /*backlog=*/10, THREADS);
 
         std::cout << "  Serving files from : " << DOCUMENT_ROOT << "\n";
         std::cout << "  Listening on       : http://" << HOST << ":" << PORT << "\n";
