@@ -1,6 +1,7 @@
 CXX      := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -I./include
 LDFLAGS  :=
+LDFLAGS := -pthread
 
 # Directories
 SRC_DIRS := src/core src/http src/handlers src/utils
@@ -16,7 +17,7 @@ SRCS := src/main.cpp \
 
 OBJS := $(patsubst %.cpp, $(BUILD)/%.o, $(SRCS))
 
-# ─── Targets ──────────────────────────────────────────────────────────────────
+#  Targets 
 
 .PHONY: all debug clean dirs run
 
@@ -29,7 +30,7 @@ debug: dirs $(BIN)
 $(BIN): $(OBJS)
 	@mkdir -p bin
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-	@echo "\n✅  Build successful → $(BIN)"
+	@echo "\n  Build successful → $(BIN)"
 
 $(BUILD)/%.o: %.cpp
 	@mkdir -p $(dir $@)
