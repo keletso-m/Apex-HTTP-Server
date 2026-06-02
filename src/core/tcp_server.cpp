@@ -7,11 +7,14 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-TCPServer::TCPServer(const std::string& host, int port, int /*backlog*/)
-    : server_fd_(-1), port_(port), host_(host), running_(false)
+TCPServer::TCPServer(const std::string& host, int port, int backlog, size_t threads)
+    : server_fd_(-1), port_(port), host_(host),
+      running_(false), backlog_(backlog),
+      pool_(threads)
 {
     setup_socket();
-    LOG_INFO("TCPServer created on " + host + ":" + std::to_string(port));
+    LOG_INFO("TCPServer created on " + host + ":" + std::to_string(port)
+             + " (" + std::to_string(threads) + " worker threads)");
 }
 
 TCPServer::~TCPServer() {
@@ -19,16 +22,13 @@ TCPServer::~TCPServer() {
 }
 
 void TCPServer::setup_socket() {
-    // Create socket
     server_fd_ = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd_ < 0)
         throw std::runtime_error("socket() failed: " + std::string(strerror(errno)));
 
-    // Allow port reuse (avoids "Address already in use" on restart)
     int opt = 1;
     setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    // Bind
     sockaddr_in addr{};
     addr.sin_family      = AF_INET;
     addr.sin_port        = htons(port_);
@@ -38,13 +38,24 @@ void TCPServer::setup_socket() {
     if (bind(server_fd_, (sockaddr*)&addr, sizeof(addr)) < 0)
         throw std::runtime_error("bind() failed: " + std::string(strerror(errno)));
 
-    // Listen
-    if (listen(server_fd_, 10) < 0)
+    if (listen(server_fd_, backlog_) < 0)   // backlog_ used now
         throw std::runtime_error("listen() failed: " + std::string(strerror(errno)));
 }
 
 void TCPServer::run(RequestHandler handler) {
     running_ = true;
+
+    // Give the pool a closure that does recv → handler → send → close
+    pool_.set_handler([handler](WorkItem item) {
+        char buf[4096] = {};
+        ssize_t n = recv(item.client_fd, buf, sizeof(buf) - 1, 0);
+        std::string raw(buf, n > 0 ? n : 0);
+
+        std::string response = handler(item.client_fd, raw);
+        send(item.client_fd, response.c_str(), response.size(), 0);
+        close(item.client_fd);
+    });
+
     LOG_INFO("Server listening on port " + std::to_string(port_));
 
     while (running_) {
@@ -57,26 +68,26 @@ void TCPServer::run(RequestHandler handler) {
             continue;
         }
 
-        // Log connection
         char ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &client_addr.sin_addr, ip, sizeof(ip));
         LOG_INFO("New connection from " + std::string(ip));
 
-        // Read raw request (simple, no timeout for Phase 1)
-        char buf[4096] = {};
-        ssize_t n = recv(client_fd, buf, sizeof(buf) - 1, 0);
-        std::string raw_request(buf, n > 0 ? n : 0);
+        WorkItem item{ client_fd, std::string(ip) };
 
-        // Call handler and send response
-        std::string response = handler(client_fd, raw_request);
-        send(client_fd, response.c_str(), response.size(), 0);
-
-        close(client_fd);
+        if (!pool_.enqueue(item)) {
+            // Queue full — send 503 and drop
+            const char* busy = "HTTP/1.1 503 Service Unavailable\r\n"
+                               "Content-Length: 0\r\n"
+                               "Connection: close\r\n\r\n";
+            send(client_fd, busy, strlen(busy), 0);
+            close(client_fd);
+        }
     }
 }
 
 void TCPServer::stop() {
     running_ = false;
+    pool_.stop();           // drains queue first
     close(server_fd_);
     server_fd_ = -1;
 }

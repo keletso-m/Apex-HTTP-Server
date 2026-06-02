@@ -7,13 +7,13 @@
 #include <csignal>
 #include <cstring>
 
-// ─── Config (Phase 1: hardcoded, Phase 3 will add config file) ────────────────
+// Config Phase 1: hardcoded, Phase 3 will add config file pafsing 
 static const std::string HOST          = "0.0.0.0";
 static const int         PORT          = 8080;
 static const std::string DOCUMENT_ROOT = "./www";
 static const std::string LOG_FILE      = "./logs/server.log";
 
-// ─── Signal handling ──────────────────────────────────────────────────────────
+// signal handling
 static TCPServer* g_server = nullptr;
 
 void handle_signal(int sig) {
@@ -21,7 +21,7 @@ void handle_signal(int sig) {
     if (g_server) g_server->stop();
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+// main loop
 int main() {
     // Init logger
     Logger::instance().init(LOG_FILE, LogLevel::DEBUG);

@@ -21,8 +21,8 @@ private:
     int         port_;
     std::string host_;
     bool        running_;
-    int      backlog_;
-    ThreadPool   pool_;
+    int         backlog_;
+    ThreadPool  pool_;
 
 
 
