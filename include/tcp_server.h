@@ -9,7 +9,7 @@ using RequestHandler = std::function<std::string(int client_fd, const std::strin
 
 class TCPServer {
 public:
-    TCPServer(const std::string& host, int port, int backlog = 10);
+    TCPServer(const std::string& host, int port, int backlog = 10, size_t threads=4);
     ~TCPServer();
 
     // Block and accept connections, calling handler for each
@@ -21,6 +21,10 @@ private:
     int         port_;
     std::string host_;
     bool        running_;
+    int      backlog_;
+    ThreadPool   pool_;
+
+
 
     void setup_socket();
 };
