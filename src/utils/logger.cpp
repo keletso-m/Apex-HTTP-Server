@@ -21,6 +21,8 @@ void Logger::init(const std::string& log_file, LogLevel min_level) {
 void Logger::log(LogLevel level, const std::string& message) {
     if (level < min_level_) return;
     std::string entry = "[" + timestamp() + "] [" + level_str(level) + "] " + message;
+
+    std::lock_guard<std::mutex> lock(mutex_);   
     std::cout << entry << "\n";
     if (file_.is_open()) file_ << entry << "\n";
 }

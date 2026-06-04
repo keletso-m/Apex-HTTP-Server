@@ -1,8 +1,8 @@
 #pragma once
-
 #include <string>
 #include <fstream>
 #include <mutex>
+
 enum class LogLevel { DEBUG, INFO, WARN, ERROR };
 
 class Logger {
