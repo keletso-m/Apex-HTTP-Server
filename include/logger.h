@@ -21,7 +21,8 @@ private:
     Logger() = default;
     std::ofstream file_;
     LogLevel      min_level_ = LogLevel::INFO;
-
+    
+    std::mutex    mutex_;
     std::string level_str(LogLevel l) const;
     std::string timestamp()           const;
 };
