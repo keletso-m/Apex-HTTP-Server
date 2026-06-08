@@ -2,18 +2,11 @@
 #include "http_parser.h"
 #include "static_handler.h"
 #include "logger.h"
-
+#include "config.h"
 #include <iostream>
 #include <csignal>
 #include <cstring>
 
-// Config Phase 1: hardcoded, Phase 3 will add config file pafsing 
-static const std::string HOST          = "0.0.0.0";
-static const int         PORT          = 8080;
-static const std::string DOCUMENT_ROOT = "./www";
-static const std::string LOG_FILE      = "./logs/server.log";
-
-// signal handling
 static TCPServer* g_server = nullptr;
 
 void handle_signal(int sig) {
@@ -21,20 +14,23 @@ void handle_signal(int sig) {
     if (g_server) g_server->stop();
 }
 
-// main loop
-int main() {
-    // Init logger
-    Logger::instance().init(LOG_FILE, LogLevel::DEBUG);
-    LOG_INFO("=== Apex HTTP Server — Phase 1 ===");
+int main(int argc, char* argv[]) {
+    // Accept optional config path as argument, default to config/server.conf
+    std::string config_path = (argc > 1) ? argv[1] : "config/server.conf";
 
-    // Signal handlers
+    // Load config first (logger not ready yet, Config warns to stderr)
+    ServerConfig cfg = Config::load(config_path);
+
+    // Init logger with values from config
+    Logger::instance().init(cfg.log_file, LogLevel::DEBUG);
+    LOG_INFO("=== Apex HTTP Server — Phase 3 ===");
+    LOG_INFO("Loaded config from: " + config_path);
+
     signal(SIGINT,  handle_signal);
     signal(SIGTERM, handle_signal);
 
-    // Static file handler
-    StaticFileHandler file_handler(DOCUMENT_ROOT);
+    StaticFileHandler file_handler(cfg.document_root);
 
-    // Request handler lambda — this is the "router" for Phase 1
     auto handler = [&](int /*client_fd*/, const std::string& raw) -> std::string {
         if (raw.empty())
             return HttpParser::make_error(400, "Empty request").serialize();
@@ -45,7 +41,6 @@ int main() {
 
         LOG_INFO(req.method + " " + req.path);
 
-        // Only serve GET/HEAD for now
         if (req.method != "GET" && req.method != "HEAD")
             return HttpParser::make_error(405, "Method not allowed").serialize();
 
@@ -53,11 +48,13 @@ int main() {
     };
 
     try {
-        static const size_t THREADS = 4;
-        TCPServer server(HOST, PORT, /*backlog=*/10, THREADS);
+        TCPServer server(cfg.host, cfg.port, cfg.backlog, cfg.threads);
+        g_server = &server;
 
-        std::cout << "  Serving files from : " << DOCUMENT_ROOT << "\n";
-        std::cout << "  Listening on       : http://" << HOST << ":" << PORT << "\n";
+        std::cout << "  Config             : " << config_path << "\n";
+        std::cout << "  Serving files from : " << cfg.document_root << "\n";
+        std::cout << "  Listening on       : http://" << cfg.host << ":" << cfg.port << "\n";
+        std::cout << "  Worker threads     : " << cfg.threads << "\n";
         std::cout << "  Press Ctrl+C to stop.\n\n";
 
         server.run(handler);
@@ -68,4 +65,3 @@ int main() {
 
     LOG_INFO("Server stopped.");
     return 0;
-}
