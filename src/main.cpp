@@ -2,7 +2,7 @@
 #include "http_parser.h"
 #include "static_handler.h"
 #include "logger.h"
-#include "config.h"
+#include "config.h"        // ADD
 #include <iostream>
 #include <csignal>
 #include <cstring>
@@ -65,3 +65,4 @@ int main(int argc, char* argv[]) {
 
     LOG_INFO("Server stopped.");
     return 0;
+}
