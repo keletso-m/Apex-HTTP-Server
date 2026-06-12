@@ -2,7 +2,21 @@
 #include <sstream>
 #include <stdexcept>
 
-// ─── Parse ────────────────────────────────────────────────────────────────────
+//shared status text map for responses, used by both make_response and make_error
+
+static const std::unordered_map<int, std::string> STATUS_TEXTS = {
+    {200, "OK"},
+    {201, "Created"},
+    {204, "No Content"},
+    {400, "Bad Request"},
+    {403, "Forbidden"},
+    {404, "Not Found"},
+    {405, "Method Not Allowed"},
+    {500, "Internal Server Error"},
+    {503, "Service Unavailable"},
+};
+
+//  Parse 
 
 HttpRequest HttpParser::parse(const std::string& raw) {
     HttpRequest req;
@@ -42,7 +56,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
     return req;
 }
 
-// ─── Serialize response ───────────────────────────────────────────────────────
+//  Serialize response 
 
 std::string HttpResponse::serialize() const {
     std::ostringstream out;
@@ -56,23 +70,21 @@ std::string HttpResponse::serialize() const {
     return out.str();
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers 
+
 
 HttpResponse HttpParser::make_response(int code, const std::string& body,
                                        const std::string& content_type) {
     HttpResponse res;
     res.status_code = code;
-    res.status_text = (code == 200) ? "OK" : "Unknown";
+    res.status_text = STATUS_TEXTS.count(code) ? STATUS_TEXTS.at(code) : "Unknown";
     res.headers["Content-Type"] = content_type;
     res.body = body;
     return res;
 }
 
+
 HttpResponse HttpParser::make_error(int code, const std::string& message) {
-    static const std::unordered_map<int, std::string> STATUS_TEXTS = {
-        {400, "Bad Request"}, {403, "Forbidden"},
-        {404, "Not Found"},   {500, "Internal Server Error"}
-    };
     HttpResponse res;
     res.status_code = code;
     res.status_text = STATUS_TEXTS.count(code) ? STATUS_TEXTS.at(code) : "Error";
