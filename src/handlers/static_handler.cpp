@@ -15,6 +15,9 @@ HttpResponse StaticFileHandler::handle(const HttpRequest& req) const {
         return HttpParser::make_error(405, "Method Not Allowed");
 
     std::string filepath = resolve_path(req.path);
+    // ADD: resolve_path returns "" on path traversal attempt
+    if (filepath.empty())
+        return HttpParser::make_error(403, "Forbidden");
     LOG_DEBUG("Serving: " + filepath);
 
     if (!fs::exists(filepath))
