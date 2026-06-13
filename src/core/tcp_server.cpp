@@ -75,30 +75,47 @@ void TCPServer::run(RequestHandler handler) {
 
     // event loop
     while (running_) {
-        sockaddr_in client_addr{};
-        socklen_t   client_len = sizeof(client_addr);
+        // Block until up to MAX_EVENTS are ready, timeout = 500ms
+        // The timeout lets us check running_ periodically for clean shutdown
+        int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, 500);
 
-        int client_fd = accept(server_fd_, (sockaddr*)&client_addr, &client_len);
-        if (client_fd < 0) {
-            if (running_) LOG_WARN("accept() failed: " + std::string(strerror(errno)));
-            continue;
+        if (nfds < 0) {
+            if (errno == EINTR) continue;   // interrupted by signal, loop again
+            LOG_ERROR("epoll_wait() failed: " + std::string(strerror(errno)));
+            break;
         }
 
-        char ip[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &client_addr.sin_addr, ip, sizeof(ip));
-        LOG_INFO("New connection from " + std::string(ip));
+        // Handle each ready event 
+        for (int i = 0; i < nfds; ++i) {
+            if (events[i].data.fd != server_fd_) continue;  // future: keep-alive fds
 
-        WorkItem item{ client_fd, std::string(ip) };
+            // New connection ready to accept
+            sockaddr_in client_addr{};
+            socklen_t   client_len = sizeof(client_addr);
 
-        if (!pool_.enqueue(item)) {
-            // Queue full — send 503 and drop
-            const char* busy = "HTTP/1.1 503 Service Unavailable\r\n"
-                               "Content-Length: 0\r\n"
-                               "Connection: close\r\n\r\n";
-            send(client_fd, busy, strlen(busy), 0);
-            close(client_fd);
+            int client_fd = accept(server_fd_, (sockaddr*)&client_addr, &client_len);
+            if (client_fd < 0) {
+                LOG_WARN("accept() failed: " + std::string(strerror(errno)));
+                continue;
+            }
+
+            char ip[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &client_addr.sin_addr, ip, sizeof(ip));
+            LOG_INFO("New connection from " + std::string(ip));
+
+            WorkItem item{ client_fd, std::string(ip) };
+
+            if (!pool_.enqueue(item)) {
+                const char* busy = "HTTP/1.1 503 Service Unavailable\r\n"
+                                   "Content-Length: 0\r\n"
+                                   "Connection: close\r\n\r\n";
+                send(client_fd, busy, strlen(busy), 0);
+                close(client_fd);
+            }
         }
     }
+
+    close(epoll_fd);
 }
 
 void TCPServer::stop() {
