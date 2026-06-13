@@ -51,6 +51,13 @@ void TCPServer::run(RequestHandler handler) {
     int epoll_fd = epoll_create1(0);
     if (epoll_fd < 0)
         throw std::runtime_error("epoll_create1() failed: " + std::string(strerror(errno)));
+    // register server socket with epoll
+    //EPOLLIN for read events, EPOLLET for edge-triggered mode
+    epoll_event ev{};
+    ev.events  = EPOLLIN;
+    ev.data.fd = server_fd_;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd_, &ev) < 0)
+        throw std::runtime_error("epoll_ctl() failed: " + std::string(strerror(errno)));
 
     // Give the pool a closure that does recv → handler → send → close
     pool_.set_handler([handler](WorkItem item) {
