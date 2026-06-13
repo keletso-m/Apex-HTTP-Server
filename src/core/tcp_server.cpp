@@ -47,6 +47,10 @@ void TCPServer::setup_socket() {
 
 void TCPServer::run(RequestHandler handler) {
     running_ = true;
+    // create epoll instance
+    int epoll_fd = epoll_create1(0);
+    if (epoll_fd < 0)
+        throw std::runtime_error("epoll_create1() failed: " + std::string(strerror(errno)));
 
     // Give the pool a closure that does recv → handler → send → close
     pool_.set_handler([handler](WorkItem item) {
