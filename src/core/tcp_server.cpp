@@ -58,7 +58,7 @@ void TCPServer::run(RequestHandler handler) {
     ev.data.fd = server_fd_;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd_, &ev) < 0)
         throw std::runtime_error("epoll_ctl() failed: " + std::string(strerror(errno)));
-
+    // 
     // Give the pool a closure that does recv → handler → send → close
     pool_.set_handler([handler](WorkItem item) {
         char buf[4096] = {};
@@ -70,8 +70,10 @@ void TCPServer::run(RequestHandler handler) {
         close(item.client_fd);
     });
 
-    LOG_INFO("Server listening on port " + std::to_string(port_));
+    LOG_INFO("Server listening on port " + std::to_string(port_) + " (epoll)");
+    epoll_event events[MAX_EVENTS];
 
+    // event loop
     while (running_) {
         sockaddr_in client_addr{};
         socklen_t   client_len = sizeof(client_addr);
