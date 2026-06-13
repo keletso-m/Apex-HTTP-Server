@@ -24,10 +24,10 @@ Build a professional HTTP server that demonstrates:
 
 ### Current Features
 - [X] TCP socket server with connection handling
-- [ ] HTTP/1.1 request parsing
-- [ ] Static file serving
-- [ ] Multi-threaded request handling
-- [ ] Configuration file support
+- [X] HTTP/1.1 request parsing
+- [X] Static file serving
+- [X] Multi-threaded request handling
+- [x] Configuration file support
 - [ ] Structured logging
 
 ### Planned Features
