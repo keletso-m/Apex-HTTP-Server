@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/epoll.h> 
+
+static const int MAX_EVENTS = 64;
 
 TCPServer::TCPServer(const std::string& host, int port, int backlog, size_t threads)
     : server_fd_(-1), port_(port), host_(host),
