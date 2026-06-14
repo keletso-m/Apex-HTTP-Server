@@ -2,6 +2,15 @@
 
 #include "http_parser.h"
 #include <string>
+#include <mutex>
+#include <unordered_map>
+
+// Cached file entry
+struct CachedFile {
+    std::string content;
+    std::string content_type;
+};
+
 
 class StaticFileHandler {
 public:
