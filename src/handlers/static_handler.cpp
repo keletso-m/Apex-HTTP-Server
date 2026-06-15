@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
-#include <shared_mutex>
+
 
 
 
@@ -17,52 +17,25 @@ HttpResponse StaticFileHandler::handle(const HttpRequest& req) const {
         return HttpParser::make_error(405, "Method Not Allowed");
 
     std::string filepath = resolve_path(req.path);
-    // ADD: resolve_path returns "" on path traversal attempt
     if (filepath.empty())
         return HttpParser::make_error(403, "Forbidden");
+
     LOG_DEBUG("Serving: " + filepath);
-    
-    // resolve directory -> index.html, check existence, read file, determine content type
+
     if (fs::exists(filepath) && fs::is_directory(filepath)) {
-        // Try index.html inside the directory
         std::string index = filepath + "/index.html";
         if (fs::exists(index)) filepath = index;
         else return HttpParser::make_error(403, "Directory listing not allowed");
     }
 
-     if (!fs::exists(filepath)) 
+    if (!fs::exists(filepath))
         return HttpParser::make_error(404, "File not found: " + req.path);
-    // cache lookup
-    {
-    std::shared_lock<std::shared_mutex> lock(cache_mutex_);
-    auto it = cache_.find(filepath);
-    if (it != cache_.end()) {
-        LOG_DEBUG("Cache hit: " + filepath);
-        return HttpParser::make_response(200, it->second.content,
-                                         it->second.content_type);
-    }
-}
-    // cache miss, read file from disk
-     LOG_DEBUG("Cache miss, reading: " + filepath);
-
-     // skip caching files larger than 1MB
-    std::error_code ec;
-    auto filesize = fs::file_size(filepath, ec);
-    if (ec) return HttpParser::make_error(500, "Could not stat file");
 
     std::string body = read_file(filepath);
-    if (body.empty() && filesize > 0)
+    if (body.empty() && fs::file_size(filepath) > 0)
         return HttpParser::make_error(500, "Could not read file");
 
-    std::string ct = get_content_type(filepath);
-
-    // cache write, keep lock scope minimal for better concurrency
-    if (filesize <= MAX_CACHE_FILE_SIZE) {
-    std::lock_guard<std::shared_mutex> lock(cache_mutex_);
-    cache_[filepath] = { body, ct };
-    LOG_DEBUG("Cached: " + filepath + " (" + std::to_string(filesize) + " bytes)");
-}
-    return HttpParser::make_response(200, body, ct);
+    return HttpParser::make_response(200, body, get_content_type(filepath));
 }
 
 std::string StaticFileHandler::resolve_path(const std::string& uri_path) const {

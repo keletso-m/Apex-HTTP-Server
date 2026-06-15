@@ -1,7 +1,6 @@
 #pragma once
 #include "http_parser.h"
 #include <string>
-#include <shared_mutex>
 #include <unordered_map>
 
 // Cached file entry
@@ -20,10 +19,7 @@ public:
 
 private:
     std::string document_root_;
-    // file cache populated on first read, never evicted 
-    mutable std::unordered_map<std::string, CachedFile> cache_;
-    mutable std::shared_mutex cache_mutex_;
-    static const size_t MAX_CACHE_FILE_SIZE = 1024 * 1024; // 1MB limit
+    
     std::string resolve_path(const std::string& uri_path) const;
     std::string get_content_type(const std::string& filepath) const;
     std::string read_file(const std::string& filepath) const;
