@@ -19,22 +19,17 @@ HttpResponse StaticFileHandler::handle(const HttpRequest& req) const {
     if (filepath.empty())
         return HttpParser::make_error(403, "Forbidden");
     LOG_DEBUG("Serving: " + filepath);
+    
     // resolve directory -> index.html, check existence, read file, determine content type
     if (fs::exists(filepath) && fs::is_directory(filepath)) {
-        std::string index = filepath + "/index.html";
-        if (fs::exists(index)) filepath = index;
-        else return HttpParser::make_error(403, "Directory listing not allowed");
-    }
-    
-    if (!fs::exists(filepath)) 
-        return HttpParser::make_error(404, "File not found: " + req.path);
-
-    if (fs::is_directory(filepath)) {
         // Try index.html inside the directory
         std::string index = filepath + "/index.html";
         if (fs::exists(index)) filepath = index;
         else return HttpParser::make_error(403, "Directory listing not allowed");
     }
+
+     if (!fs::exists(filepath)) 
+        return HttpParser::make_error(404, "File not found: " + req.path);
 
     std::string body = read_file(filepath);
     if (body.empty() && !fs::is_empty(filepath))
