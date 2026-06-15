@@ -62,16 +62,7 @@ HttpResponse StaticFileHandler::handle(const HttpRequest& req) const {
         cache_[filepath] = { body, ct };
         LOG_DEBUG("Cached: " + filepath + " (" + std::to_string(filesize) + " bytes)");
     }
-
-
-    std::string body = read_file(filepath);
-    if (body.empty() && !fs::is_empty(filepath))
-        return HttpParser::make_error(500, "Could not read file");
-
-    std::string ct = get_content_type(filepath);
-    auto res = HttpParser::make_response(200, body, ct);
-    res.status_text = "OK";
-    return res;
+    return HttpParser::make_response(200, body, ct);
 }
 
 std::string StaticFileHandler::resolve_path(const std::string& uri_path) const {
