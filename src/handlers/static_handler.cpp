@@ -33,15 +33,14 @@ HttpResponse StaticFileHandler::handle(const HttpRequest& req) const {
         return HttpParser::make_error(404, "File not found: " + req.path);
     // cache lookup
     {
-        std::lock_guard<std::mutex> lock(cache_mutex_);
-        auto it = cache_.find(filepath);
-        if (it != cache_.end()) {
-            LOG_DEBUG("Cache hit: " + filepath);
-            auto res = HttpParser::make_response(200, it->second.content,
-                                                 it->second.content_type);
-            return res;
-        }
+    std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+    auto it = cache_.find(filepath);
+    if (it != cache_.end()) {
+        LOG_DEBUG("Cache hit: " + filepath);
+        return HttpParser::make_response(200, it->second.content,
+                                         it->second.content_type);
     }
+}
     // cache miss, read file from disk
      LOG_DEBUG("Cache miss, reading: " + filepath);
 
