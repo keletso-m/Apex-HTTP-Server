@@ -22,7 +22,7 @@ private:
     std::string document_root_;
     // file cache populated on first read, never evicted 
     mutable std::unordered_map<std::string, CachedFile> cache_;
-    mutable std::mutex cache_mutex_;
+    mutable std::shared_mutex cache_mutex_;
     static const size_t MAX_CACHE_FILE_SIZE = 1024 * 1024; // 1MB limit
     std::string resolve_path(const std::string& uri_path) const;
     std::string get_content_type(const std::string& filepath) const;
