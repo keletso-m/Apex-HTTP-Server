@@ -1,6 +1,5 @@
 #include "static_handler.h"
 #include "logger.h"
-
 #include <fstream>
 #include <sstream>
 #include <filesystem>
@@ -57,8 +56,12 @@ HttpResponse StaticFileHandler::handle(const HttpRequest& req) const {
 
     std::string ct = get_content_type(filepath);
 
-    
-
+    // cache the file if it's smaller files
+    if (filesize <= MAX_CACHE_FILE_SIZE) {
+        std::lock_guard<std::mutex> lock(cache_mutex_);
+        cache_[filepath] = { body, ct };
+        LOG_DEBUG("Cached: " + filepath + " (" + std::to_string(filesize) + " bytes)");
+    }
 
 
     std::string body = read_file(filepath);
