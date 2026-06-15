@@ -46,6 +46,20 @@ HttpResponse StaticFileHandler::handle(const HttpRequest& req) const {
     // cache miss, read file from disk
      LOG_DEBUG("Cache miss, reading: " + filepath);
 
+     // skip caching files larger than 1MB
+    std::error_code ec;
+    auto filesize = fs::file_size(filepath, ec);
+    if (ec) return HttpParser::make_error(500, "Could not stat file");
+
+    std::string body = read_file(filepath);
+    if (body.empty() && filesize > 0)
+        return HttpParser::make_error(500, "Could not read file");
+
+    std::string ct = get_content_type(filepath);
+
+    
+
+
 
     std::string body = read_file(filepath);
     if (body.empty() && !fs::is_empty(filepath))
