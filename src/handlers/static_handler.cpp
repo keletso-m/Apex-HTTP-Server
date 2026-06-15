@@ -43,6 +43,8 @@ HttpResponse StaticFileHandler::handle(const HttpRequest& req) const {
             return res;
         }
     }
+    // cache miss, read file from disk
+     LOG_DEBUG("Cache miss, reading: " + filepath);
 
 
     std::string body = read_file(filepath);
