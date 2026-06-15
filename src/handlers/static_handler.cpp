@@ -3,7 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
-#include <mutex>
+#include <shared_mutex>
+
 
 
 namespace fs = std::filesystem;
@@ -55,12 +56,12 @@ HttpResponse StaticFileHandler::handle(const HttpRequest& req) const {
 
     std::string ct = get_content_type(filepath);
 
-    // cache the file if it's smaller files
+    // cache write, keep lock scope minimal for better concurrency
     if (filesize <= MAX_CACHE_FILE_SIZE) {
-        std::lock_guard<std::mutex> lock(cache_mutex_);
-        cache_[filepath] = { body, ct };
-        LOG_DEBUG("Cached: " + filepath + " (" + std::to_string(filesize) + " bytes)");
-    }
+    std::lock_guard<std::shared_mutex> lock(cache_mutex_);
+    cache_[filepath] = { body, ct };
+    LOG_DEBUG("Cached: " + filepath + " (" + std::to_string(filesize) + " bytes)");
+}
     return HttpParser::make_response(200, body, ct);
 }
 
