@@ -1,7 +1,7 @@
 #pragma once
 #include "http_parser.h"
 #include <string>
-#include <mutex>
+#include <shared_mutex>
 #include <unordered_map>
 
 // Cached file entry
