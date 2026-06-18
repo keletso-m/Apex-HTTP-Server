@@ -31,8 +31,8 @@ Build a professional HTTP server that demonstrates:
 - [ ] Structured logging
 
 ### Planned Features
-- [ ] Thread pool with work queue
-- [ ] epoll-based event loop
+- [x] Thread pool with work queue
+- [x] epoll-based event loop
 - [ ] Prometheus metrics endpoint
 - [ ] Rate limiting
 - [ ] TLS/SSL support
@@ -227,9 +227,9 @@ This project was built by learning from:
 
 ### Phase 4: Performance 
 - [x] epoll integration
-- [ ] Benchmarking suite
-- [ ] Performance profiling
-- [ ] Memory optimization
+- [x] Benchmarking suite
+- [x] Performance profiling
+- [x] Memory optimization
 
 ### Phase 5: Deployment 
 - [ ] Docker container
