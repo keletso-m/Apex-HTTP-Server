@@ -1,7 +1,6 @@
 CXX      := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -I./include
-LDFLAGS  :=
-LDFLAGS := -pthread
+LDFLAGS  := -pthread  # fixed: was declared twice
 
 # Directories
 SRC_DIRS := src/core src/http src/handlers src/utils
@@ -17,9 +16,9 @@ SRCS := src/main.cpp \
 
 OBJS := $(patsubst %.cpp, $(BUILD)/%.o, $(SRCS))
 
-#  Targets 
+#  Targets and rules
 
-.PHONY: all debug clean dirs run
+.PHONY: all debug clean dirs run benchmark profile
 
 all: CXXFLAGS += -O2
 all: dirs $(BIN)
@@ -45,3 +44,24 @@ run: all
 clean:
 	rm -rf $(BUILD) bin
 	@echo "Cleaned."
+
+# benchmark 
+# sudo apt install wrk
+benchmark: all
+	@echo "\n  Starting server in background..."
+	@./$(BIN) &
+	@sleep 1
+	@echo "\n Benchmark: 2 threads, 100 connections, 10 seconds"
+	@wrk -t2 -c100 -d10s --latency http://localhost:8080/ || true
+	@echo "\n  Benchmark: 2 threads, 400 connections, 10 seconds"
+	@wrk -t2 -c400 -d10s http://localhost:8080/ || true
+	@echo "\n  Stopping server..."
+	@pkill apex-server || true
+	@echo "Done."
+
+#Profiling 
+# sudo apt install linux-perf
+profile: debug
+	@echo "\n🔍  Starting server under perf..."
+	@echo "    Run your benchmark in another terminal, then Ctrl+C here."
+	perf stat ./$(BIN)
