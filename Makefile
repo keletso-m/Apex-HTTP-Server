@@ -49,7 +49,7 @@ clean:
 # sudo apt install wrk
 benchmark: all
 	@echo "\n  Starting server in background..."
-	@./$(BIN) &
+	@./$(BIN) > /dev/null 2>&1 &
 	@sleep 1
 	@echo "\n Benchmark: 2 threads, 100 connections, 10 seconds"
 	@wrk -t2 -c100 -d10s --latency http://localhost:8080/ || true
