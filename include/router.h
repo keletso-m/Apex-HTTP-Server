@@ -26,4 +26,6 @@ public:
     // set fallback, its calledif no route matches
     void set_fallback(RouteHandler handler);
 
-    
+    // route a request, and returns a serialized resppnse string 
+    std::string route(const HttpRequest& request) const;
+
