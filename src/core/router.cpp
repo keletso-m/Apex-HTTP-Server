@@ -13,3 +13,7 @@ void Router::get(const std::string& path, RouteHandler handler) {
 void Router::post(const std::string& path, RouteHandler handler) {
     add_route("POST", path, false, std::move(handler));
 }
+
+void Router::any(const std::string& path, RouteHandler handler) {
+    add_route("", path, false, std::move(handler));
+}
