@@ -20,3 +20,6 @@ void Router::any(const std::string& path, RouteHandler handler) {
 void Router::get_prefix(const std::string& path, RouteHandler handler) {
     add_route("GET", path, true, std::move(handler));
 }
+void Router::set_fallback(RouteHandler handler) {
+    fallback_ = std::move(handler);
+}
