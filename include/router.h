@@ -22,3 +22,8 @@ public:
     void any(const std::string& path, RouteHandler handler);
     // register prfix routes lke "/" cattches eevertyhing 
     void get_prefix(const std::string& path, RouteHandler handler);
+    
+    // set fallback, its calledif no route matches
+    void set_fallback(RouteHandler handler);
+
+    
