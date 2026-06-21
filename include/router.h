@@ -29,3 +29,9 @@ public:
     // route a request, and returns a serialized resppnse string 
     std::string route(const HttpRequest& request) const;
 
+private:
+    std::vector<Route> routes_;
+    RouteHandler fallback_;
+    void add_route(const std::string& method, const std::string& path, bool prefix, RouteHandler handler);
+
+};
