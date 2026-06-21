@@ -23,3 +23,7 @@ void Router::get_prefix(const std::string& path, RouteHandler handler) {
 void Router::set_fallback(RouteHandler handler) {
     fallback_ = std::move(handler);
 }
+std::string Router::route(const HttpRequest& req) const {
+    // Check method, only GET/HEAD allowed for now
+    if (req.method != "GET" && req.method != "HEAD" && req.method != "POST")
+        return HttpParser::make_error(405, "Method Not Allowed").serialize();
