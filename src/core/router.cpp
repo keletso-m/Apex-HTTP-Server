@@ -6,3 +6,7 @@
                        bool prefix, RouteHandler handler) {
     routes_.push_back({ method, path, prefix, std::move(handler) });
 }
+
+void Router::get(const std::string& path, RouteHandler handler) {
+    add_route("GET", path, false, std::move(handler));
+}
