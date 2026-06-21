@@ -14,3 +14,9 @@ struct Route {
     bool        prefix;      // true = match any path starting with this
     RouteHandler handler;
 };
+class Router {
+public:
+    // Register exact path routes
+    void get(const std::string& path, RouteHandler handler);
+    void post(const std::string& path, RouteHandler handler);
+    void any(const std::string& path, RouteHandler handler);
