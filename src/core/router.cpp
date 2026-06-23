@@ -30,22 +30,24 @@ std::string Router::route(const HttpRequest& req) const {
 
      // Walk routes in registration order,first match wins
     for (const auto& r : routes_) {
-        // Method check
-        if (!r.method.empty() && r.method != req.method) {
-            // HEAD is handled like GET
-            if (!(r.method == "GET" && req.method == "HEAD"))
-                continue;
-        }
 
-        // Path check
+        // Path check first 
         bool matched = r.prefix
          ? req.path.rfind(r.path, 0) == 0 // starts with the prefix
          : req.path == r.path; // exact match
+        
+        if (!matched)
+            continue;
+        // Path matched, now check method
+        bool method_ok = r.method.empty()
+            || r.method == req.method
+            || (r.method == "GET" && req.method == "HEAD");
+        if (!method_ok)
+            return HttpParser::make_error(405, "Method Not Allowed").serialize();
 
-          if (matched) {
-            LOG_INFO(req.method + " " + req.path + " → matched route " + r.path);
-            return r.handler(req).serialize();
-        }
+        LOG_INFO(req.method + " " + req.path + " → matched route " + r.path);
+        return r.handler(req).serialize();
+          
     }
     // no route matched, call fallback if set
     if (fallback_) {
