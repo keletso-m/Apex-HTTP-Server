@@ -27,3 +27,12 @@ std::string Router::route(const HttpRequest& req) const {
     // Check method, only GET/HEAD allowed for now
     if (req.method != "GET" && req.method != "HEAD" && req.method != "POST")
         return HttpParser::make_error(405, "Method Not Allowed").serialize();
+
+     // Walk routes in registration order,first match wins
+    for (const auto& r : routes_) {
+        // Method check
+        if (!r.method.empty() && r.method != req.method) {
+            // HEAD is handled like GET
+            if (!(r.method == "GET" && req.method == "HEAD"))
+                continue;
+        }
