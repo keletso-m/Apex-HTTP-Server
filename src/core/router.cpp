@@ -47,3 +47,10 @@ std::string Router::route(const HttpRequest& req) const {
             return r.handler(req).serialize();
         }
     }
+    // no route matched, call fallback if set
+    if (fallback_) {
+        LOG_INFO(req.method + " " + req.path + " → matched fallback route");
+        return fallback_(req).serialize();
+    }
+    return HttpParser::make_error(404, "No route for " + req.path).serialize();
+}
