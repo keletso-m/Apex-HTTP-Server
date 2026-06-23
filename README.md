@@ -231,7 +231,12 @@ This project was built by learning from:
 - [x] Performance profiling
 - [x] Memory optimization
 
-### Phase 5: Deployment 
+### phase 5: Testing
+- [] Unit tests for router 
+- [] HTTP parser tests
+- [] intergrations tests
+
+### Phase 6: Deployment 
 - [ ] Docker container
 - [ ] systemd service
 - [ ] Monitoring (Prometheus)
