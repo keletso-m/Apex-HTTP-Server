@@ -235,6 +235,7 @@ This project was built by learning from:
 - [] Unit tests for router 
 - [] HTTP parser tests
 - [] intergrations tests
+- [] load tests
 
 ### Phase 6: Deployment 
 - [ ] Docker container
