@@ -36,3 +36,14 @@ std::string Router::route(const HttpRequest& req) const {
             if (!(r.method == "GET" && req.method == "HEAD"))
                 continue;
         }
+
+        // Path check
+        bool matched = r.prefix
+         ? req.path.rfind(r.path, 0) == 0 // starts with the prefix
+         : req.path == r.path; // exact match
+
+          if (matched) {
+            LOG_INFO(req.method + " " + req.path + " → matched route " + r.path);
+            return r.handler(req).serialize();
+        }
+    }
