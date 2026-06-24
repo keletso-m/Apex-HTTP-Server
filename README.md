@@ -223,7 +223,7 @@ This project was built by learning from:
 - [x] Configuration system
 - [x] Structured logging
 - [x] Error handling
-- [ ] Request routing
+- [X] Request routing
 
 ### Phase 4: Performance 
 - [x] epoll integration
@@ -232,10 +232,10 @@ This project was built by learning from:
 - [x] Memory optimization
 
 ### phase 5: Testing
-- [] Unit tests for router 
-- [] HTTP parser tests
-- [] intergrations tests
-- [] load tests
+- [ ] Unit tests for router 
+- [ ] HTTP parser tests
+- [ ] intergrations tests
+- [ ] load tests
 
 ### Phase 6: Deployment 
 - [ ] Docker container
