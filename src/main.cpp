@@ -1,8 +1,9 @@
 #include "tcp_server.h"
 #include "http_parser.h"
 #include "static_handler.h"
+#include "router.h"
 #include "logger.h"
-#include "config.h"        // ADD
+#include "config.h"        
 #include <iostream>
 #include <csignal>
 #include <cstring>
@@ -31,21 +32,34 @@ int main(int argc, char* argv[]) {
 
     StaticFileHandler file_handler(cfg.document_root);
 
-    auto handler = [&](int /*client_fd*/, const std::string& raw) -> std::string {
-        if (raw.empty())
-            return HttpParser::make_error(400, "Empty request").serialize();
+    // router 
+    Router router;
+    // Health check endpoint, for Docker/load balancers
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
+    // static files as prefix catch all
+    router.get_prefix("/", [&](const HttpRequest& req) {
+    return file_handler.handle(req);
+    });
+    // 405 for POST/PUT/DELETE on any path
+    router.set_fallback([](const HttpRequest& req) {
+        return HttpParser::make_error(404, "Not found: " + req.path);
+    });
 
-        HttpRequest req = HttpParser::parse(raw);
-        if (!req.valid)
-            return HttpParser::make_error(400, "Malformed HTTP request").serialize();
 
-        LOG_INFO(req.method + " " + req.path);
+auto handler = [&](int /*client_fd*/, const std::string& raw) -> std::string {
+    if (raw.empty())
+        return HttpParser::make_error(400, "Empty request").serialize();
 
-        if (req.method != "GET" && req.method != "HEAD")
-            return HttpParser::make_error(405, "Method not allowed").serialize();
+    HttpRequest req = HttpParser::parse(raw);
+    if (!req.valid)
+        return HttpParser::make_error(400, "Malformed HTTP request").serialize();
 
-        return file_handler.handle(req).serialize();
-    };
+    LOG_INFO(req.method + " " + req.path);
+
+    return router.route(req);   // all routing goes through the router 
+};
 
     try {
         TCPServer server(cfg.host, cfg.port, cfg.backlog, cfg.threads);

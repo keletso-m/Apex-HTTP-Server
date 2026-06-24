@@ -203,7 +203,7 @@ This project was built by learning from:
 
 ---
 
-## Development Roadmap {#roadmap}
+## Development Roadmap
 
 ### Phase 1: Foundation
 - [x] Project setup
@@ -223,7 +223,7 @@ This project was built by learning from:
 - [x] Configuration system
 - [x] Structured logging
 - [x] Error handling
-- [ ] Request routing
+- [X] Request routing
 
 ### Phase 4: Performance 
 - [x] epoll integration
@@ -231,7 +231,13 @@ This project was built by learning from:
 - [x] Performance profiling
 - [x] Memory optimization
 
-### Phase 5: Deployment 
+### phase 5: Testing
+- [ ] Unit tests for router 
+- [ ] HTTP parser tests
+- [ ] intergrations tests
+- [ ] load tests
+
+### Phase 6: Deployment 
 - [ ] Docker container
 - [ ] systemd service
 - [ ] Monitoring (Prometheus)
