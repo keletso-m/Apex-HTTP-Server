@@ -203,7 +203,7 @@ This project was built by learning from:
 
 ---
 
-## Development Roadmap {#roadmap}
+## Development Roadmap
 
 ### Phase 1: Foundation
 - [x] Project setup
