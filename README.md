@@ -223,21 +223,29 @@ This project was built by learning from:
 - [x] Configuration system
 - [x] Structured logging
 - [x] Error handling
-- [X] Request routing
+- [x] Request routing
 
-### Phase 4: Performance 
+### phase 4: Production feature
+- [ ] HTTP status code correctness
+- [ ] HEAD support
+- [ ] Content-length correctness
+- [ ] Keep-alive support 
+- [ ] Connection timeout
+
+
+### Phase 5: Performance 
 - [x] epoll integration
 - [x] Benchmarking suite
 - [x] Performance profiling
 - [x] Memory optimization
 
-### phase 5: Testing
+### phase 6: Testing
 - [ ] Unit tests for router 
 - [ ] HTTP parser tests
 - [ ] intergrations tests
 - [ ] load tests
 
-### Phase 6: Deployment 
+### Phase 7: Deployment 
 - [ ] Docker container
 - [ ] systemd service
 - [ ] Monitoring (Prometheus)
