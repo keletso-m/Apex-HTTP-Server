@@ -225,7 +225,7 @@ This project was built by learning from:
 - [x] Error handling
 - [x] Request routing
 
-### phase 4: Production feature
+### phase 4: HTTp compliance
 - [ ] HTTP status code correctness
 - [ ] HEAD support
 - [ ] Content-length correctness
