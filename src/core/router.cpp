@@ -47,8 +47,11 @@ std::string Router::route(const HttpRequest& req) const {
 
         LOG_INFO(req.method + " " + req.path + " → matched route " + r.path);
         HttpResponse res = r.handler(req);
-        if (req.method == "HEAD") res.skip_body = true;
-        return res.serialize();
+        if (req.method == "HEAD") {
+            LOG_DEBUG("HEAD request — skipping body for: " + req.path);
+            res.skip_body = true;
+}
+return res.serialize();
           
     }
     // no route matched, call fallback if set
