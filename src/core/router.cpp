@@ -46,7 +46,9 @@ std::string Router::route(const HttpRequest& req) const {
             return HttpParser::make_error(405, "Method Not Allowed").serialize();
 
         LOG_INFO(req.method + " " + req.path + " → matched route " + r.path);
-        return r.handler(req).serialize();
+        HttpResponse res = r.handler(req);
+        if (req.method == "HEAD") res.skip_body = true;
+        return res.serialize();
           
     }
     // no route matched, call fallback if set
