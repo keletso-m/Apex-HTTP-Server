@@ -10,6 +10,7 @@ struct HttpRequest {
     std::unordered_map<std::string, std::string> headers;
     std::string body;
     bool valid = false;
+
 };
 
 struct HttpResponse {
@@ -17,6 +18,7 @@ struct HttpResponse {
     std::string status_text = "OK";
     std::unordered_map<std::string, std::string> headers;
     std::string body;
+    bool skip_body = false; // set true for head response
 
     std::string serialize() const;
 };

@@ -67,6 +67,8 @@ std::string HttpResponse::serialize() const {
     out << "Connection: close\r\n";
     out << "\r\n";
     out << body;
+     if (!skip_body) // skip body for HEAD requests
+        out << body;
     return out.str();
 }
 
