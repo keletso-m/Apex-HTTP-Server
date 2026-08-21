@@ -10,6 +10,7 @@ struct HttpRequest {
     std::unordered_map<std::string, std::string> headers;
     std::string body;
     bool valid = false;
+    bool keep_alive = true; 
 
 };
 
