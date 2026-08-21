@@ -48,7 +48,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
         }
     }
 
-    // Body (whatever remains)
+    // Body
     std::string body_buf;
     while (std::getline(stream, line)) body_buf += line + "\n";
     req.body  = body_buf;
@@ -65,8 +65,7 @@ std::string HttpResponse::serialize() const {
         out << k << ": " << v << "\r\n";
     out << "Content-Length: " << body.size() << "\r\n";
     out << "\r\n";
-    out << body;
-     if (!skip_body) // skip body for HEAD requests
+    if (!skip_body) // skip body for HEAD requests
         out << body;
     return out.str();
 }
