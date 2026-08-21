@@ -35,6 +35,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
     // default to keep-alive for HTTP/1.1, close for HTTP/1.0
     req.keep_alive = (req.version == "HTTP/1.1");
 
+
     // Headers
     while (std::getline(stream, line)) {
         if (!line.empty() && line.back() == '\r') line.pop_back();
@@ -50,6 +51,15 @@ HttpRequest HttpParser::parse(const std::string& raw) {
         }
 
     }
+    // explicitly check for Connection header to override default keep-alive behavior
+    auto it = req.headers.find("Connection");
+    if (it != req.headers.end()) {
+        std::string val = it->second;
+        for (auto& c : val) c = std::tolower(c);
+        if (val.find("keep-alive") != std::string::npos) req.keep_alive = true;
+        else if (val.find("close") != std::string::npos) req.keep_alive = false;
+    }
+
 
     // Body
     std::string body_buf;
