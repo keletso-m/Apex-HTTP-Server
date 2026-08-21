@@ -20,7 +20,7 @@ struct HttpResponse {
     std::unordered_map<std::string, std::string> headers;
     std::string body;
     bool skip_body = false; // set true for head response
-
+    bool keep_alive = true; 
     std::string serialize() const;
 };
 
