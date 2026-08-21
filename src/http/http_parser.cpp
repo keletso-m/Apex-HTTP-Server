@@ -32,6 +32,8 @@ HttpRequest HttpParser::parse(const std::string& raw) {
     std::istringstream req_line(line);
     req_line >> req.method >> req.path >> req.version;
     if (req.method.empty() || req.path.empty()) return req;
+    // default to keep-alive for HTTP/1.1, close for HTTP/1.0
+    req.keep_alive = (req.version == "HTTP/1.1");
 
     // Headers
     while (std::getline(stream, line)) {
@@ -46,6 +48,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
             if (!value.empty() && value[0] == ' ') value = value.substr(1);
             req.headers[key] = value;
         }
+
     }
 
     // Body
