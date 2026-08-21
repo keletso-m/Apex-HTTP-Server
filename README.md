@@ -226,8 +226,8 @@ This project was built by learning from:
 - [x] Request routing
 
 ### phase 4: HTTp compliance
-- [ ] HTTP status code correctness
-- [ ] HEAD support
+- [X] HTTP status code correctness
+- [x] HEAD support
 - [ ] Content-length correctness
 - [ ] Keep-alive support 
 - [ ] Connection timeout
