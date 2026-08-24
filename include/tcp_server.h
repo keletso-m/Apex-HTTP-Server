@@ -24,4 +24,12 @@ private:
     ThreadPool  pool_;
 
     void setup_socket();
+    
+struct HandlerResult {
+    std::string data;
+    bool keep_alive = false;
+};
+
+using RequestHandler = std::function<HandlerResult(int, const std::string&)>;
+
 };
