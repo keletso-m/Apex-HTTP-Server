@@ -5,8 +5,6 @@
 #include <functional>
 #include <netinet/in.h>
 
-using RequestHandler = std::function<std::string(int client_fd, const std::string& raw_request)>;
-
 struct HandlerResult {
     std::string data;
     bool keep_alive = false;
