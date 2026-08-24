@@ -48,17 +48,18 @@ int main(int argc, char* argv[]) {
     });
 
 
-auto handler = [&](int /*client_fd*/, const std::string& raw) -> std::string {
+auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
     if (raw.empty())
-        return HttpParser::make_error(400, "Empty request").serialize();
+        return { HttpParser::make_error(400, "Empty request").serialize(), false };
 
     HttpRequest req = HttpParser::parse(raw);
     if (!req.valid)
-        return HttpParser::make_error(400, "Malformed HTTP request").serialize();
+        return { HttpParser::make_error(400, "Malformed HTTP request").serialize(), false };
 
     LOG_INFO(req.method + " " + req.path);
 
-    return router.route(req);   // all routing goes through the router 
+    HttpResponse res = router.route(req);
+    return { res.serialize(), res.keep_alive };
 };
 
     try {
