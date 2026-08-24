@@ -23,41 +23,48 @@ void Router::get_prefix(const std::string& path, RouteHandler handler) {
 void Router::set_fallback(RouteHandler handler) {
     fallback_ = std::move(handler);
 }
-std::string Router::route(const HttpRequest& req) const {
-    // Check method, only GET/HEAD allowed for now
-    if (req.method != "GET" && req.method != "HEAD" && req.method != "POST")
-        return HttpParser::make_error(405, "Method Not Allowed").serialize();
+// route a request, returns the response (not yet serialized)
+HttpResponse Router::route(const HttpRequest& req) const {
+    if (req.method != "GET" && req.method != "HEAD" && req.method != "POST") {
+        HttpResponse res = HttpParser::make_error(405, "Method Not Allowed");
+        res.keep_alive = req.keep_alive;
+        return res;
+    }
 
-     // Walk routes in registration order,first match wins
     for (const auto& r : routes_) {
-
-        // Path check first 
         bool matched = r.prefix
-         ? req.path.rfind(r.path, 0) == 0 // starts with the prefix
-         : req.path == r.path; // exact match
-        
-        if (!matched)
-            continue;
-        // Path matched, now check method
+            ? req.path.rfind(r.path, 0) == 0
+            : req.path == r.path;
+
+        if (!matched) continue;
+
         bool method_ok = r.method.empty()
             || r.method == req.method
             || (r.method == "GET" && req.method == "HEAD");
-        if (!method_ok)
-            return HttpParser::make_error(405, "Method Not Allowed").serialize();
+        if (!method_ok) {
+            HttpResponse res = HttpParser::make_error(405, "Method Not Allowed");
+            res.keep_alive = req.keep_alive;
+            return res;
+        }
 
         LOG_INFO(req.method + " " + req.path + " → matched route " + r.path);
         HttpResponse res = r.handler(req);
         if (req.method == "HEAD") {
             LOG_DEBUG("HEAD request — skipping body for: " + req.path);
             res.skip_body = true;
-}
-return res.serialize();
-          
+        }
+        res.keep_alive = req.keep_alive;
+        return res;
     }
-    // no route matched, call fallback if set
+
     if (fallback_) {
         LOG_INFO(req.method + " " + req.path + " → matched fallback route");
-        return fallback_(req).serialize();
+        HttpResponse res = fallback_(req);
+        res.keep_alive = req.keep_alive;
+        return res;
     }
-    return HttpParser::make_error(404, "No route for " + req.path).serialize();
+
+    HttpResponse res = HttpParser::make_error(404, "No route for " + req.path);
+    res.keep_alive = req.keep_alive;
+    return res;
 }
