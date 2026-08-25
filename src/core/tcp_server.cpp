@@ -62,15 +62,17 @@ void TCPServer::run(RequestHandler handler) {
     // fd to ip, needed when a conncetion is redisacpached from epoll
     auto client_ips = std::make_shared<std::unordered_map<int, std::string>>();
     auto ip_mutex    = std::make_shared<std::mutex>();
-    // Give the pool a closure that does recv → handler → send → close
-    pool_.set_handler([handler](WorkItem item) {
+    //Worker: recv -> handler -> send -> either re-arm for keep-alive or close
+     pool_.set_handler([handler, epoll_fd, client_ips, ip_mutex](WorkItem item) {
         char buf[4096] = {};
         ssize_t n = recv(item.client_fd, buf, sizeof(buf) - 1, 0);
-        std::string raw(buf, n > 0 ? n : 0);
 
-        std::string response = handler(item.client_fd, raw);
-        send(item.client_fd, response.c_str(), response.size(), 0);
-        close(item.client_fd);
+        auto close_conn = [&]() {
+            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, item.client_fd, nullptr); // ignore error
+            close(item.client_fd);
+            std::lock_guard<std::mutex> lock(*ip_mutex);
+            client_ips->erase(item.client_fd);
+        };
     });
 
     LOG_INFO("Server listening on port " + std::to_string(port_) + " (epoll)");
