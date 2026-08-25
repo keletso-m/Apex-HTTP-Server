@@ -87,6 +87,10 @@ void TCPServer::run(RequestHandler handler) {
             close_conn();
             return;
         }
+         if (!result.keep_alive) {
+            close_conn();
+            return;
+        }
         
     });
 
