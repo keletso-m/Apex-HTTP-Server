@@ -229,7 +229,7 @@ This project was built by learning from:
 - [X] HTTP status code correctness
 - [x] HEAD support
 - [ ] Content-length correctness
-- [ ] Keep-alive support 
+- [x] Keep-alive support 
 - [ ] Connection timeout
 
 
