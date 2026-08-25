@@ -78,6 +78,16 @@ void TCPServer::run(RequestHandler handler) {
             close_conn();
             return;
         }
+
+        std::string raw(buf, n);
+        HandlerResult result = handler(item.client_fd, raw);
+
+        ssize_t sent = send(item.client_fd, result.data.c_str(), result.data.size(), 0);
+        if (sent < 0) {
+            close_conn();
+            return;
+        }
+        
     });
 
     LOG_INFO("Server listening on port " + std::to_string(port_) + " (epoll)");
