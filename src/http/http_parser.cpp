@@ -77,6 +77,7 @@ std::string HttpResponse::serialize() const {
     for (auto& [k, v] : headers)
         out << k << ": " << v << "\r\n";
     out << "Content-Length: " << body.size() << "\r\n";
+    out << "Connection: " << (keep_alive ? "keep-alive" : "close") << "\r\n";
     out << "\r\n";
     if (!skip_body) // skip body for HEAD requests
         out << body;
