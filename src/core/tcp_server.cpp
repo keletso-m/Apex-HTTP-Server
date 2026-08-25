@@ -59,7 +59,9 @@ void TCPServer::run(RequestHandler handler) {
     ev.data.fd = server_fd_;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd_, &ev) < 0)
         throw std::runtime_error("epoll_ctl() failed: " + std::string(strerror(errno)));
-    // 
+    // fd to ip, needed when a conncetion is redisacpached from epoll
+    auto client_ips = std::make_shared<std::unordered_map<int, std::string>>();
+    auto ip_mutex    = std::make_shared<std::mutex>();
     // Give the pool a closure that does recv → handler → send → close
     pool_.set_handler([handler](WorkItem item) {
         char buf[4096] = {};
