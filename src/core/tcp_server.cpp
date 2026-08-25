@@ -73,6 +73,11 @@ void TCPServer::run(RequestHandler handler) {
             std::lock_guard<std::mutex> lock(*ip_mutex);
             client_ips->erase(item.client_fd);
         };
+        if (n <= 0) {
+            // n == 0 client closed. n < 0 recv error
+            close_conn();
+            return;
+        }
     });
 
     LOG_INFO("Server listening on port " + std::to_string(port_) + " (epoll)");
