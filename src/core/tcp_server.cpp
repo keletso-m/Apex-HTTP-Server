@@ -143,6 +143,10 @@ void TCPServer::run(RequestHandler handler) {
             char ip[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, &client_addr.sin_addr, ip, sizeof(ip));
             LOG_INFO("New connection from " + std::string(ip));
+            {
+                std::lock_guard<std::mutex> lock(*ip_mutex);
+                (*client_ips)[client_fd] = ip;
+            }
 
             WorkItem item{ client_fd, std::string(ip) };
 
