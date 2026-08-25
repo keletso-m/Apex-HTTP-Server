@@ -91,6 +91,12 @@ void TCPServer::run(RequestHandler handler) {
             close_conn();
             return;
         }
+        // keep alive re-arm the fd in epoll so the next request wakes
+        // maybe a different thread instead of locking this one 
+        epoll_event cev{};
+        cev.events  = EPOLLIN | EPOLLONESHOT;
+        cev.data.fd = item.client_fd;
+
         
     });
 
