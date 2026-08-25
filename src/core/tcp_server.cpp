@@ -108,7 +108,7 @@ void TCPServer::run(RequestHandler handler) {
                 LOG_WARN("epoll_ctl(MOD) failed re-arming fd: " + std::string(strerror(errno)));
                 close_conn();
             }
-        }   
+        }
     });
 
     LOG_INFO("Server listening on port " + std::to_string(port_) + " (epoll)");
@@ -128,7 +128,7 @@ void TCPServer::run(RequestHandler handler) {
 
         // Handle each ready event 
         for (int i = 0; i < nfds; ++i) {
-            if (events[i].data.fd != server_fd_) continue;  // future: keep-alive fds
+            if (events[i].data.fd == server_fd_) continue; // for keep alive, we only accept new connections on the server_fd_
 
             // New connection ready to accept
             sockaddr_in client_addr{};
