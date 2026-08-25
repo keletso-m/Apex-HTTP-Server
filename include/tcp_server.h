@@ -25,7 +25,7 @@ private:
     int         port_;
     std::string host_;
     bool        running_;
-    int         backlog_;       // now actually used
+    int         backlog_;      
     ThreadPool  pool_;
 
     void setup_socket();
