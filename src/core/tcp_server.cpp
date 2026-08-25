@@ -110,54 +110,69 @@ void TCPServer::run(RequestHandler handler) {
             }
         }
     });
-
     LOG_INFO("Server listening on port " + std::to_string(port_) + " (epoll)");
     epoll_event events[MAX_EVENTS];
 
-    // event loop
     while (running_) {
-        // Block until up to MAX_EVENTS are ready, timeout = 500ms
-        // The timeout lets us check running_ periodically for clean shutdown
         int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, 500);
 
         if (nfds < 0) {
-            if (errno == EINTR) continue;   // interrupted by signal, loop again
+            if (errno == EINTR) continue;
             LOG_ERROR("epoll_wait() failed: " + std::string(strerror(errno)));
             break;
         }
 
-        // Handle each ready event 
         for (int i = 0; i < nfds; ++i) {
-            if (events[i].data.fd == server_fd_) continue; // for keep alive, we only accept new connections on the server_fd_
+            if (events[i].data.fd == server_fd_) {
+                // new connection
+                sockaddr_in client_addr{};
+                socklen_t   client_len = sizeof(client_addr);
 
-            // New connection ready to accept
-            sockaddr_in client_addr{};
-            socklen_t   client_len = sizeof(client_addr);
+                int client_fd = accept(server_fd_, (sockaddr*)&client_addr, &client_len);
+                if (client_fd < 0) {
+                    LOG_WARN("accept() failed: " + std::string(strerror(errno)));
+                    continue;
+                }
 
-            int client_fd = accept(server_fd_, (sockaddr*)&client_addr, &client_len);
-            if (client_fd < 0) {
-                LOG_WARN("accept() failed: " + std::string(strerror(errno)));
-                continue;
-            }
+                char ip[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, &client_addr.sin_addr, ip, sizeof(ip));
+                LOG_INFO("New connection from " + std::string(ip));
 
-            char ip[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, &client_addr.sin_addr, ip, sizeof(ip));
-            LOG_INFO("New connection from " + std::string(ip));
-            {
-                std::lock_guard<std::mutex> lock(*ip_mutex);
-                (*client_ips)[client_fd] = ip;
-            }
+                {
+                    std::lock_guard<std::mutex> lock(*ip_mutex);
+                    (*client_ips)[client_fd] = ip;
+                }
 
-            WorkItem item{ client_fd, std::string(ip) };
+                WorkItem item{ client_fd, std::string(ip) };
 
-            if (!pool_.enqueue(item)) {
-                const char* busy = "HTTP/1.1 503 Service Unavailable\r\n"
-                                   "Content-Length: 0\r\n"
-                                   "Connection: close\r\n\r\n";
-                send(client_fd, busy, strlen(busy), 0);
-                close(client_fd);
-                std::lock_guard<std::mutex> lock(*ip_mutex);
-                client_ips->erase(client_fd);
+                if (!pool_.enqueue(item)) {
+                    const char* busy = "HTTP/1.1 503 Service Unavailable\r\n"
+                                       "Content-Length: 0\r\n"
+                                       "Connection: close\r\n\r\n";
+                    send(client_fd, busy, strlen(busy), 0);
+                    close(client_fd);
+                    std::lock_guard<std::mutex> lock(*ip_mutex);
+                    client_ips->erase(client_fd);
+                }
+            } else {
+                // existing keep-alive connection has more data.
+                int fd = events[i].data.fd;
+                std::string ip;
+                {
+                    std::lock_guard<std::mutex> lock(*ip_mutex);
+                    auto it = client_ips->find(fd);
+                    ip = (it != client_ips->end()) ? it->second : "";
+                }
+
+                WorkItem item{ fd, ip };
+                if (!pool_.enqueue(item)) {
+                    // Pool is full can't process this read right now
+                    // drop the connection rather than leaving it dangling.
+                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
+                    close(fd);
+                    std::lock_guard<std::mutex> lock(*ip_mutex);
+                    client_ips->erase(fd);
+                }
             }
         }
     }
@@ -167,7 +182,8 @@ void TCPServer::run(RequestHandler handler) {
 
 void TCPServer::stop() {
     running_ = false;
-    pool_.stop();           // drains queue first
+    pool_.stop();
     close(server_fd_);
     server_fd_ = -1;
 }
+
