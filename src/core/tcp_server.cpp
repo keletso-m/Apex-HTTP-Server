@@ -96,8 +96,19 @@ void TCPServer::run(RequestHandler handler) {
         epoll_event cev{};
         cev.events  = EPOLLIN | EPOLLONESHOT;
         cev.data.fd = item.client_fd;
-
-        
+        // MOD if already registered in the 2nd + connection 
+        // add if this is the time its handed to epoll
+        if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, item.client_fd, &cev) < 0) {
+            if (errno == ENOENT) {
+                if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, item.client_fd, &cev) < 0) {
+                    LOG_WARN("epoll_ctl(ADD) failed re-arming fd: " + std::string(strerror(errno)));
+                    close_conn();
+                }
+            } else {
+                LOG_WARN("epoll_ctl(MOD) failed re-arming fd: " + std::string(strerror(errno)));
+                close_conn();
+            }
+        }   
     });
 
     LOG_INFO("Server listening on port " + std::to_string(port_) + " (epoll)");
