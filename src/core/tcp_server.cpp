@@ -156,6 +156,8 @@ void TCPServer::run(RequestHandler handler) {
                                    "Connection: close\r\n\r\n";
                 send(client_fd, busy, strlen(busy), 0);
                 close(client_fd);
+                std::lock_guard<std::mutex> lock(*ip_mutex);
+                client_ips->erase(client_fd);
             }
         }
     }
