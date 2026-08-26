@@ -244,6 +244,7 @@ This project was built by learning from:
 - [ ] HTTP parser tests
 - [ ] intergrations tests
 - [ ] load tests
+- [ ] fuzz testing 
 
 ### Phase 7: Deployment 
 - [ ] Docker container
