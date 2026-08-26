@@ -31,6 +31,7 @@ int main(int argc, char* argv[]) {
     signal(SIGTERM, handle_signal);
 
     StaticFileHandler file_handler(cfg.document_root);
+    
 
     // router 
     Router router;
@@ -63,7 +64,7 @@ auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
 };
 
     try {
-        TCPServer server(cfg.host, cfg.port, cfg.backlog, cfg.threads);
+       TCPServer server(cfg.host, cfg.port, cfg.backlog, cfg.threads, cfg.keep_alive_timeout);
         g_server = &server;
 
         std::cout << "  Config             : " << config_path << "\n";
