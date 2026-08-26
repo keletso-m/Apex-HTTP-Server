@@ -16,6 +16,8 @@ void handle_signal(int sig) {
 }
 
 int main(int argc, char* argv[]) {
+    // prevent SIGPIPE from crashing the server when writing to a closed socket
+    signal(SIGPIPE, SIG_IGN);
     // Accept optional config path as argument, default to config/server.conf
     std::string config_path = (argc > 1) ? argv[1] : "config/server.conf";
 
