@@ -5,6 +5,7 @@
 #include <functional>
 #include <netinet/in.h>
 
+static const int KEEP_ALIVE_TIMEOUT_SECONDS = 30;
 struct HandlerResult {
     std::string data;
     bool keep_alive = false;
