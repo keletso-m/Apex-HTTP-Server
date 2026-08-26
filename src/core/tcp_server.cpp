@@ -12,6 +12,11 @@
 
 static const int MAX_EVENTS = 64;
 
+struct ConnectionInfo {
+    std::string ip;
+    std::chrono::steady_clock::time_point last_activity;
+};
+
 TCPServer::TCPServer(const std::string& host, int port, int backlog, size_t threads)
     : server_fd_(-1), port_(port), host_(host),
       running_(false), backlog_(backlog),
