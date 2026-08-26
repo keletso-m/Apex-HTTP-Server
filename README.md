@@ -228,7 +228,7 @@ This project was built by learning from:
 ### phase 4: HTTp compliance
 - [X] HTTP status code correctness
 - [x] HEAD support
-- [ ] status code audit
+- [ ] status code 
 - [x] Keep-alive support 
 - [ ] Connection timeout
 
