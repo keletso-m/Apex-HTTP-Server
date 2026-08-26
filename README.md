@@ -230,7 +230,7 @@ This project was built by learning from:
 - [x] HEAD support
 - [ ] status code 
 - [x] Keep-alive support 
-- [ ] Connection timeout
+- [x] Connection timeout
 
 
 ### Phase 5: Performance 
