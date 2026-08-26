@@ -181,6 +181,25 @@ void TCPServer::run(RequestHandler handler) {
                 }
             }
         }
+        auto now = std::chrono::steady_clock::now();
+        std::vector<int> expired;
+        {
+            std::lock_guard<std::mutex> lock(*conn_mutex);
+            for (auto& [fd, info] : *connections) {
+                auto idle = std::chrono::duration_cast<std::chrono::seconds>(
+                    now - info.last_activity).count();
+                if (idle >= KEEP_ALIVE_TIMEOUT_SECONDS) {
+                    expired.push_back(fd);
+                }
+            }
+        }
+        for (int fd : expired) {
+            LOG_INFO("Closing idle keep-alive connection, fd=" + std::to_string(fd));
+            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
+            close(fd);
+            std::lock_guard<std::mutex> lock(*conn_mutex);
+            connections->erase(fd);
+        }
     }
 
     close(epoll_fd);

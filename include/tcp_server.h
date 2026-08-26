@@ -28,6 +28,7 @@ private:
     bool        running_;
     int         backlog_;      
     ThreadPool  pool_;
+    int         keep_alive_timeout_seconds_;
 
     void setup_socket();
     
