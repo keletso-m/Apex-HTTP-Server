@@ -15,7 +15,8 @@ using RequestHandler = std::function<HandlerResult(int, const std::string&)>;
 
 class TCPServer {
 public:
-    TCPServer(const std::string& host, int port, int backlog = 10, size_t threads = 4);
+    TCPServer(const std::string& host, int port, int backlog = 10,
+          size_t threads = 4, int keep_alive_timeout_seconds = 60);
     ~TCPServer();
 
     void run(RequestHandler handler);
