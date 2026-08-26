@@ -48,12 +48,25 @@ void ThreadPool::worker_loop() {
                 return !queue_.empty() || stopping_;
             });
 
-            if (stopping_ && queue_.empty()) return;   // drain first, then exit
+            if (stopping_ && queue_.empty()) return;
             item = std::move(queue_.front());
             queue_.pop();
         }
         // Handle outside the lock
-        if (handler_) handler_(item);
-        else           close(item.client_fd);           // safety fallback
+        if (handler_) {
+            try {
+                handler_(item);
+            } catch (const std::exception& e) {
+                LOG_ERROR("Unhandled exception in worker: " + std::string(e.what())
+                          + " — closing connection fd=" + std::to_string(item.client_fd));
+                close(item.client_fd);
+            } catch (...) {
+                LOG_ERROR("Unknown exception in worker — closing connection fd="
+                          + std::to_string(item.client_fd));
+                close(item.client_fd);
+            }
+        } else {
+            close(item.client_fd);
+        }
     }
 }
