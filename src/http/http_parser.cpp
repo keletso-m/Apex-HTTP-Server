@@ -16,7 +16,7 @@ static const std::unordered_map<int, std::string> STATUS_TEXTS = {
     {503, "Service Unavailable"},
 };
 
-//  Parse 
+//  Parse a raw HTTP request string into an HttpRequest struct
 
 HttpRequest HttpParser::parse(const std::string& raw) {
     HttpRequest req;
@@ -39,7 +39,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
     req.keep_alive = (req.version == "HTTP/1.1");
 
 
-    // Headers
+    // Headers: key: value
     while (std::getline(stream, line)) {
         if (!line.empty() && line.back() == '\r') line.pop_back();
         if (line.empty()) continue; // blank line = end of headers
@@ -66,14 +66,32 @@ HttpRequest HttpParser::parse(const std::string& raw) {
 
     // Body, read content length bytes after header terminator 
     size_t body_start = header_end + 4; // skip "\r\n\r\n"
-    std::string body_buf;
-    while (std::getline(stream, line)) body_buf += line + "\n";
-    req.body  = body_buf;
+    auto cl_it = req.headers.find("Content-Length");
+    if (cl_it != req.headers.end()) {
+        size_t content_length = 0;
+        try {
+            content_length = std::stoul(cl_it->second);
+        } catch (...) {
+            return req; // invalid Content-Length, reject as malformed
+        }
+
+        size_t available = raw.size() - body_start;
+        if (available < content_length) {
+            // Body not fully received yet in this buffer. With my current
+            // single-recv()-per-request model 
+            // flag as invalid for now rather than silently truncating.
+            return req;
+        }
+
+        req.body = raw.substr(body_start, content_length);
+    }
+    // no Content-Length header,no body
+
     req.valid = true;
     return req;
 }
 
-//  Serialize response 
+//  Serialize response to string for sending over socket
 
 std::string HttpResponse::serialize() const {
     std::ostringstream out;
@@ -88,7 +106,7 @@ std::string HttpResponse::serialize() const {
     return out.str();
 }
 
-// Helpers 
+// Helpers to create responses and errors with standard status text
 
 
 HttpResponse HttpParser::make_response(int code, const std::string& body,
