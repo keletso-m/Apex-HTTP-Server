@@ -42,7 +42,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
     // Headers
     while (std::getline(stream, line)) {
         if (!line.empty() && line.back() == '\r') line.pop_back();
-        if (line.empty()) break; // blank line = end of headers
+        if (line.empty()) continue; // blank line = end of headers
 
         auto colon = line.find(':');
         if (colon != std::string::npos) {
