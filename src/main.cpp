@@ -9,7 +9,7 @@
 #include <cstring>
 
 static TCPServer* g_server = nullptr;
-
+  
 void handle_signal(int sig) {
     std::cout << "\n[INFO] Caught signal " << sig << ", shutting down...\n";
     if (g_server) g_server->stop();

@@ -21,10 +21,13 @@ static const std::unordered_map<int, std::string> STATUS_TEXTS = {
 HttpRequest HttpParser::parse(const std::string& raw) {
     HttpRequest req;
     if (raw.empty()) return req;
-
+    //find end of headers
+    size_t header_end = raw.find("\r\n\r\n");
+    if (header_end == std::string::npos) return req;  // incomplete request
+    std::string header_section = raw.substr(0, header_end);
     std::istringstream stream(raw);
     std::string line;
-
+    
     // Request line: METHOD PATH VERSION
     if (!std::getline(stream, line)) return req;
     if (!line.empty() && line.back() == '\r') line.pop_back();
