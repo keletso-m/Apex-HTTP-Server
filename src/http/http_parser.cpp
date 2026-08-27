@@ -64,7 +64,8 @@ HttpRequest HttpParser::parse(const std::string& raw) {
     }
 
 
-    // Body
+    // Body, read content length bytes after header terminator 
+    size_t body_start = header_end + 4; // skip "\r\n\r\n"
     std::string body_buf;
     while (std::getline(stream, line)) body_buf += line + "\n";
     req.body  = body_buf;
