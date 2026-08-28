@@ -24,6 +24,11 @@ HttpRequest HttpParser::parse(const std::string& raw) {
     //find end of headers
     size_t header_end = raw.find("\r\n\r\n");
     if (header_end == std::string::npos) return req;  // incomplete request
+    if (header_end > HttpLimits::MAX_HEADER_SECTION) {
+        // Header section too large reject
+        return req; // invalid; caller sends 400
+    }
+
     std::string header_section = raw.substr(0, header_end);
     std::istringstream stream(raw);
     std::string line;
