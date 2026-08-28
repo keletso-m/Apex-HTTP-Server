@@ -56,7 +56,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
 
     }
     // explicitly check for Connection header to override default keep-alive behavior
-    auto it = req.headers.find("Connection");
+    auto it = req.headers.find("connection");
     if (it != req.headers.end()) {
         std::string val = it->second;
         for (auto& c : val) c = std::tolower(c);
@@ -67,7 +67,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
 
     // Body, read content length bytes after header terminator 
     size_t body_start = header_end + 4; // skip "\r\n\r\n"
-    auto cl_it = req.headers.find("Content-Length");
+    auto cl_it = req.headers.find("content-length");
     if (cl_it != req.headers.end()) {
         size_t content_length = 0;
         try {
