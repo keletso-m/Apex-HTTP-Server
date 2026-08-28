@@ -50,6 +50,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
             std::string value = line.substr(colon + 1);
             // Trim leading space from value
             if (!value.empty() && value[0] == ' ') value = value.substr(1);
+            for (auto& c : key) c = std::tolower(c);   // normalize key casing
             req.headers[key] = value;
         }
 
