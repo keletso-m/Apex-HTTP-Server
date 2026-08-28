@@ -33,11 +33,9 @@ Build a professional HTTP server that demonstrates:
 ### Planned Features
 - [x] Thread pool with work queue
 - [x] epoll-based event loop
-- [ ] Prometheus metrics endpoint
 - [ ] Rate limiting
 - [ ] TLS/SSL support
 - [ ] Reverse proxy mode
-- [ ] Docker deployment
 - [ ] Graceful shutdown
 
 ---
@@ -232,7 +230,6 @@ This project was built by learning from:
 - [x] Keep-alive support 
 - [x] Connection timeout
 - [X] SIGPIPE handling
-
 
 ### Phase 5: Performance 
 - [x] epoll integration
