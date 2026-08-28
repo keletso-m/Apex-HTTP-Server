@@ -31,14 +31,8 @@ Build a professional HTTP server that demonstrates:
 - [ ] Structured logging
 
 ### Planned Features
-- [x] Thread pool with work queue
-- [x] epoll-based event loop
-- [ ] Prometheus metrics endpoint
-- [ ] Rate limiting
 - [ ] TLS/SSL support
 - [ ] Reverse proxy mode
-- [ ] Docker deployment
-- [ ] Graceful shutdown
 
 ---
 
@@ -226,11 +220,13 @@ This project was built by learning from:
 - [x] Request routing
 
 ### phase 4: HTTp compliance
-- [ ] HTTP status code correctness
-- [ ] HEAD support
-- [ ] Content-length correctness
-- [ ] Keep-alive support 
-- [ ] Connection timeout
+- [X] HTTP status code correctness
+- [x] HEAD support
+- [X] status code 
+- [x] Keep-alive support 
+- [x] Connection timeout
+- [X] SIGPIPE handling
+- [x] Graceful shutdown
 
 
 ### Phase 5: Performance 
@@ -238,12 +234,14 @@ This project was built by learning from:
 - [x] Benchmarking suite
 - [x] Performance profiling
 - [x] Memory optimization
+- [ ] Rate limiting
 
 ### phase 6: Testing
 - [ ] Unit tests for router 
 - [ ] HTTP parser tests
 - [ ] intergrations tests
 - [ ] load tests
+- [ ] fuzz testing 
 
 ### Phase 7: Deployment 
 - [ ] Docker container

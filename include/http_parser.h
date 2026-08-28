@@ -3,13 +3,20 @@
 #include <string>
 #include <unordered_map>
 
+namespace HttpLimits {
+    constexpr size_t MAX_HEADER_SECTION = 8192;   // 8KB, matches common server defaults (nginx: 8k)
+    constexpr size_t MAX_URI_LENGTH     = 2048;   // 2KB
+    constexpr size_t MAX_BODY_SIZE      = 10 * 1024 * 1024; // 10MB
+}
+
 struct HttpRequest {
-    std::string method;   // GET, POST, etc.
+    std::string method;   
     std::string path;     // /index.html
     std::string version;  // HTTP/1.1
-    std::unordered_map<std::string, std::string> headers;
+    std::unordered_map<std::string, std::string> headers; // keys stored lowercase
     std::string body;
     bool valid = false;
+    bool keep_alive = true; 
 
 };
 
@@ -19,7 +26,7 @@ struct HttpResponse {
     std::unordered_map<std::string, std::string> headers;
     std::string body;
     bool skip_body = false; // set true for head response
-
+    bool keep_alive = true; 
     std::string serialize() const;
 };
 

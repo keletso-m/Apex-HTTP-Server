@@ -9,13 +9,15 @@
 #include <cstring>
 
 static TCPServer* g_server = nullptr;
-
+  
 void handle_signal(int sig) {
     std::cout << "\n[INFO] Caught signal " << sig << ", shutting down...\n";
     if (g_server) g_server->stop();
 }
 
 int main(int argc, char* argv[]) {
+    // prevent SIGPIPE from crashing the server when writing to a closed socket
+    signal(SIGPIPE, SIG_IGN);
     // Accept optional config path as argument, default to config/server.conf
     std::string config_path = (argc > 1) ? argv[1] : "config/server.conf";
 
@@ -31,6 +33,7 @@ int main(int argc, char* argv[]) {
     signal(SIGTERM, handle_signal);
 
     StaticFileHandler file_handler(cfg.document_root);
+    
 
     // router 
     Router router;
@@ -48,21 +51,22 @@ int main(int argc, char* argv[]) {
     });
 
 
-auto handler = [&](int /*client_fd*/, const std::string& raw) -> std::string {
+auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
     if (raw.empty())
-        return HttpParser::make_error(400, "Empty request").serialize();
+        return { HttpParser::make_error(400, "Empty request").serialize(), false };
 
     HttpRequest req = HttpParser::parse(raw);
     if (!req.valid)
-        return HttpParser::make_error(400, "Malformed HTTP request").serialize();
+        return { HttpParser::make_error(400, "Malformed HTTP request").serialize(), false };
 
     LOG_INFO(req.method + " " + req.path);
 
-    return router.route(req);   // all routing goes through the router 
+    HttpResponse res = router.route(req);
+    return { res.serialize(), res.keep_alive };
 };
 
     try {
-        TCPServer server(cfg.host, cfg.port, cfg.backlog, cfg.threads);
+       TCPServer server(cfg.host, cfg.port, cfg.backlog, cfg.threads, cfg.keep_alive_timeout);
         g_server = &server;
 
         std::cout << "  Config             : " << config_path << "\n";
