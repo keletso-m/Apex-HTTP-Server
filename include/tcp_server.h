@@ -1,17 +1,24 @@
 #pragma once
-
 #include "thread_pool.h"
 #include <string>
 #include <functional>
 #include <netinet/in.h>
+#include <mutex>
+#include <chrono>
+#include <memory>
 
-static const int KEEP_ALIVE_TIMEOUT_SECONDS = 30;
+
 struct HandlerResult {
     std::string data;
     bool keep_alive = false;
 };
 
 using RequestHandler = std::function<HandlerResult(int, const std::string&)>;
+
+struct ConnectionInfo {
+    std::string ip;
+    std::chrono::steady_clock::time_point last_activity;
+};
 
 class TCPServer {
 public:

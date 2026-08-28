@@ -72,11 +72,6 @@ void TCPServer::run(RequestHandler handler) {
     connections_ = std::make_shared<std::unordered_map<int, ConnectionInfo>>();
     conn_mutex_   = std::make_shared<std::mutex>();
     int timeout_secs = keep_alive_timeout_seconds_;
-    // fd -> connection info (ip + last activity time), shared across the
-    // event loop and worker threads. One map replaces the old client_ips-only one.
-    auto connections = std::make_shared<std::unordered_map<int, ConnectionInfo>>();
-    auto conn_mutex   = std::make_shared<std::mutex>();
-    int  timeout_secs = keep_alive_timeout_seconds_;
 
     // Worker: recv -> handler -> send -> either re-arm for keep-alive or close.
     pool_.set_handler([handler, epoll_fd = epoll_fd_, connections = connections_, conn_mutex = conn_mutex_](WorkItem item) {
