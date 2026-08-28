@@ -30,7 +30,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
     }
 
     std::string header_section = raw.substr(0, header_end);
-    std::istringstream stream(raw);
+    std::istringstream stream(header_section);
     std::string line;
     
     // Request line: METHOD PATH VERSION
@@ -40,6 +40,7 @@ HttpRequest HttpParser::parse(const std::string& raw) {
     std::istringstream req_line(line);
     req_line >> req.method >> req.path >> req.version;
     if (req.method.empty() || req.path.empty()) return req;
+    if (req.path.size() > HttpLimits::MAX_URI_LENGTH) return req; // reject oversized URI
     // default to keep-alive for HTTP/1.1, close for HTTP/1.0
     req.keep_alive = (req.version == "HTTP/1.1");
 
