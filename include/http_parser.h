@@ -3,6 +3,12 @@
 #include <string>
 #include <unordered_map>
 
+namespace HttpLimits {
+    constexpr size_t MAX_HEADER_SECTION = 8192;   // 8KB, matches common server defaults (nginx: 8k)
+    constexpr size_t MAX_URI_LENGTH     = 2048;   // 2KB
+    constexpr size_t MAX_BODY_SIZE      = 10 * 1024 * 1024; // 10MB
+}
+
 struct HttpRequest {
     std::string method;   
     std::string path;     // /index.html
