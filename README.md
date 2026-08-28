@@ -231,6 +231,7 @@ This project was built by learning from:
 - [X] status code 
 - [x] Keep-alive support 
 - [x] Connection timeout
+- [X] SIGPIPE handling
 
 
 ### Phase 5: Performance 
