@@ -14,10 +14,6 @@
 
 static const int MAX_EVENTS = 64;
 
-struct ConnectionInfo {
-    std::string ip;
-    std::chrono::steady_clock::time_point last_activity;
-};
 
 TCPServer::TCPServer(const std::string& host, int port, int backlog,
                      size_t threads, int keep_alive_timeout_seconds)
@@ -60,14 +56,14 @@ void TCPServer::setup_socket() {
 void TCPServer::run(RequestHandler handler) {
     running_ = true;
 
-    int epoll_fd = epoll_create1(0);
-    if (epoll_fd < 0)
+    epoll_fd_  = epoll_create1(0);
+    if (epoll_fd_ < 0)
         throw std::runtime_error("epoll_create1() failed: " + std::string(strerror(errno)));
 
     epoll_event ev{};
     ev.events  = EPOLLIN;
     ev.data.fd = server_fd_;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd_, &ev) < 0)
+    if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, server_fd_, &ev) < 0)
         throw std::runtime_error("epoll_ctl() failed: " + std::string(strerror(errno)));
     connections_ = std::make_shared<std::unordered_map<int, ConnectionInfo>>();
     conn_mutex_   = std::make_shared<std::mutex>();
@@ -135,7 +131,7 @@ void TCPServer::run(RequestHandler handler) {
     epoll_event events[MAX_EVENTS];
 
     while (running_) {
-        int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, 500);
+        int nfds = epoll_wait(epoll_fd_, events, MAX_EVENTS, 500);
 
         if (nfds < 0) {
             if (errno == EINTR) continue;
@@ -160,8 +156,8 @@ void TCPServer::run(RequestHandler handler) {
                 LOG_INFO("New connection from " + std::string(ip));
 
                 {
-                    std::lock_guard<std::mutex> lock(*conn_mutex);
-                    (*connections)[client_fd] = ConnectionInfo{
+                    std::lock_guard<std::mutex> lock(*conn_mutex_);
+                    (*connections_)[client_fd] = ConnectionInfo{
                         std::string(ip), std::chrono::steady_clock::now()
                     };
                 }
@@ -174,25 +170,25 @@ void TCPServer::run(RequestHandler handler) {
                                        "Connection: close\r\n\r\n";
                     send(client_fd, busy, strlen(busy), 0);
                     close(client_fd);
-                    std::lock_guard<std::mutex> lock(*conn_mutex);
-                    connections->erase(client_fd);
+                    std::lock_guard<std::mutex> lock(*conn_mutex_);
+                    connections_->erase(client_fd);
                 }
             } else {
                 // Existing keep-alive connection has more data.
                 int fd = events[i].data.fd;
                 std::string ip;
                 {
-                    std::lock_guard<std::mutex> lock(*conn_mutex);
-                    auto it = connections->find(fd);
-                    ip = (it != connections->end()) ? it->second.ip : "";
+                    std::lock_guard<std::mutex> lock(*conn_mutex_);
+                    auto it = connections_->find(fd);
+                    ip = (it != connections_->end()) ? it->second.ip : "";
                 }
 
                 WorkItem item{ fd, ip };
                 if (!pool_.enqueue(item)) {
-                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
+                    epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, nullptr);
                     close(fd);
-                    std::lock_guard<std::mutex> lock(*conn_mutex);
-                    connections->erase(fd);
+                    std::lock_guard<std::mutex> lock(*conn_mutex_);
+                    connections_->erase(fd);
                 }
             }
         }
@@ -201,8 +197,8 @@ void TCPServer::run(RequestHandler handler) {
         auto now = std::chrono::steady_clock::now();
         std::vector<int> expired;
         {
-            std::lock_guard<std::mutex> lock(*conn_mutex);
-            for (auto& [fd, info] : *connections) {
+            std::lock_guard<std::mutex> lock(*conn_mutex_);
+            for (auto& [fd, info] : *connections_) {
                 auto idle = std::chrono::duration_cast<std::chrono::seconds>(
                     now - info.last_activity).count();
                 if (idle >= timeout_secs) {
@@ -212,10 +208,10 @@ void TCPServer::run(RequestHandler handler) {
         }
         for (int fd : expired) {
             LOG_INFO("Closing idle keep-alive connection, fd=" + std::to_string(fd));
-            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
+            epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, nullptr);
             close(fd);
-            std::lock_guard<std::mutex> lock(*conn_mutex);
-            connections->erase(fd);
+            std::lock_guard<std::mutex> lock(*conn_mutex_);
+            connections_->erase(fd);
         }
     }
 
