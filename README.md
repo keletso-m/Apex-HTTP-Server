@@ -31,12 +31,8 @@ Build a professional HTTP server that demonstrates:
 - [ ] Structured logging
 
 ### Planned Features
-- [x] Thread pool with work queue
-- [x] epoll-based event loop
-- [ ] Rate limiting
 - [ ] TLS/SSL support
 - [ ] Reverse proxy mode
-- [ ] Graceful shutdown
 
 ---
 
@@ -230,12 +226,15 @@ This project was built by learning from:
 - [x] Keep-alive support 
 - [x] Connection timeout
 - [X] SIGPIPE handling
+- [x] Graceful shutdown
+
 
 ### Phase 5: Performance 
 - [x] epoll integration
 - [x] Benchmarking suite
 - [x] Performance profiling
 - [x] Memory optimization
+- [ ] Rate limiting
 
 ### phase 6: Testing
 - [ ] Unit tests for router 

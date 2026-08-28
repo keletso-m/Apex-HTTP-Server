@@ -226,7 +226,7 @@ void TCPServer::run(RequestHandler handler) {
 
 void TCPServer::stop() {
     running_ = false;
-    pool_.stop();
+    pool_.stop();  // drains queue first 
     close(server_fd_);
     server_fd_ = -1;
 }

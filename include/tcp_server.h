@@ -30,6 +30,9 @@ private:
     int         backlog_;      
     ThreadPool  pool_;
     int         keep_alive_timeout_seconds_;
+    int epoll_fd_ = -1;
+    std::shared_ptr<std::unordered_map<int, ConnectionInfo>> connections_;
+    std::shared_ptr<std::mutex> conn_mutex_;
 
     void setup_socket();
     
