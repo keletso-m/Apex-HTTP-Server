@@ -4,10 +4,10 @@
 #include <unordered_map>
 
 struct HttpRequest {
-    std::string method;   // GET, POST, etc.
+    std::string method;   
     std::string path;     // /index.html
     std::string version;  // HTTP/1.1
-    std::unordered_map<std::string, std::string> headers;
+    std::unordered_map<std::string, std::string> headers; // keys stored lowercase
     std::string body;
     bool valid = false;
     bool keep_alive = true; 
