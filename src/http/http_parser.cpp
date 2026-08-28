@@ -81,11 +81,11 @@ HttpRequest HttpParser::parse(const std::string& raw) {
         } catch (...) {
             return req; // invalid Content-Length, reject as malformed
         }
+        if (content_length > HttpLimits::MAX_BODY_SIZE) return req; // reject oversized body
 
         size_t available = raw.size() - body_start;
         if (available < content_length) {
-            // Body not fully received yet in this buffer. With my current
-            // single-recv()-per-request model 
+            // Body not fully received yet in this buffer.
             // flag as invalid for now rather than silently truncating.
             return req;
         }
