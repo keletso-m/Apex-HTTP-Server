@@ -10,6 +10,7 @@
 #include <mutex>
 #include <chrono>
 #include <vector>
+#include <memory>
 
 static const int MAX_EVENTS = 64;
 
@@ -68,7 +69,9 @@ void TCPServer::run(RequestHandler handler) {
     ev.data.fd = server_fd_;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd_, &ev) < 0)
         throw std::runtime_error("epoll_ctl() failed: " + std::string(strerror(errno)));
-
+    connections_ = std::make_shared<std::unordered_map<int, ConnectionInfo>>();
+    conn_mutex_   = std::make_shared<std::mutex>();
+    int timeout_secs = keep_alive_timeout_seconds_;
     // fd -> connection info (ip + last activity time), shared across the
     // event loop and worker threads. One map replaces the old client_ips-only one.
     auto connections = std::make_shared<std::unordered_map<int, ConnectionInfo>>();
@@ -76,7 +79,7 @@ void TCPServer::run(RequestHandler handler) {
     int  timeout_secs = keep_alive_timeout_seconds_;
 
     // Worker: recv -> handler -> send -> either re-arm for keep-alive or close.
-    pool_.set_handler([handler, epoll_fd, connections, conn_mutex](WorkItem item) {
+    pool_.set_handler([handler, epoll_fd = epoll_fd_, connections = connections_, conn_mutex = conn_mutex_](WorkItem item) {
         char buf[4096] = {};
         ssize_t n = recv(item.client_fd, buf, sizeof(buf) - 1, 0);
 
@@ -221,11 +224,22 @@ void TCPServer::run(RequestHandler handler) {
         }
     }
 
-    close(epoll_fd);
+    close(epoll_fd_);
+    epoll_fd_ = -1;
 }
 
 void TCPServer::stop() {
     running_ = false;
+    if (connections_ && conn_mutex_) {
+        std::lock_guard<std::mutex> lock(*conn_mutex_);
+        for (auto& [fd, info] : *connections_) {
+            LOG_INFO("Shutdown: closing keep-alive connection fd=" + std::to_string(fd));
+            if (epoll_fd_ >= 0)
+                epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, nullptr);
+            close(fd);
+        }
+        connections_->clear();
+    }
     pool_.stop();  // drains queue first 
     close(server_fd_);
     server_fd_ = -1;
