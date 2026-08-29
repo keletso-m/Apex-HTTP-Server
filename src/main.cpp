@@ -53,19 +53,6 @@ int main(int argc, char* argv[]) {
         return HttpParser::make_error(404, "Not found: " + req.path);
     });
 
-
-auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
-    if (raw.empty())
-        return { HttpParser::make_error(400, "Empty request").serialize(), false };
-
-    HttpRequest req = HttpParser::parse(raw);
-    if (!req.valid)
-        return { HttpParser::make_error(400, "Malformed HTTP request").serialize(), false };
-
-    LOG_INFO(req.method + " " + req.path);
-
-    HttpResponse res = router.route(req);
-    return { res.serialize(), res.keep_alive };
 };
  auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
         if (!limiter.allow()) {
