@@ -4,20 +4,21 @@
 #include <unordered_map>
 
 struct ServerConfig {
-    // server
+        // server
     std::string host        = "0.0.0.0";
     int         port        = 8080;
     int         threads     = 4;
     int         backlog     = 10;
     int         max_connections = 1000;
 
+    // performance
+    int keep_alive_timeout    = 60;
+    int request_timeout       = 30;
+    int rate_limit_per_second = 1000;
+
     // paths
     std::string document_root = "./www";
     std::string log_file      = "./logs/server.log";
-
-    // performance
-    int keep_alive_timeout = 60;
-    int request_timeout    = 30;
 };
 
 class Config {
