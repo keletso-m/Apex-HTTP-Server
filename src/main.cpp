@@ -7,8 +7,10 @@
 #include <iostream>
 #include <csignal>
 #include <cstring>
+#include "rate_limiter.h"
 
 static TCPServer* g_server = nullptr;
+
   
 void handle_signal(int sig) {
     std::cout << "\n[INFO] Caught signal " << sig << ", shutting down...\n";
@@ -23,6 +25,7 @@ int main(int argc, char* argv[]) {
 
     // Load config first (logger not ready yet, Config warns to stderr)
     ServerConfig cfg = Config::load(config_path);
+    RateLimiter limiter(cfg.rate_limit_per_second); 
 
     // Init logger with values from config
     Logger::instance().init(cfg.log_file, LogLevel::DEBUG);
