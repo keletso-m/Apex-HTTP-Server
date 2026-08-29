@@ -11,6 +11,7 @@ static const std::unordered_map<int, std::string> STATUS_TEXTS = {
     {400, "Bad Request"},
     {403, "Forbidden"},
     {404, "Not Found"},
+    {429, "Too Many Requests"},
     {405, "Method Not Allowed"},
     {500, "Internal Server Error"},
     {503, "Service Unavailable"},

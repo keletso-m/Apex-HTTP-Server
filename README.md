@@ -2,7 +2,7 @@
 
 A high-performance, production-grade HTTP/1.1 server built from scratch in C++ using Linux system calls.
 
-> ⚠️ **Status:** Active Development  
+>  **Status:** Active Development  
 > This project is being built incrementally. Check the [Development Roadmap](#roadmap) for current progress.
 
 ---
@@ -32,7 +32,6 @@ Build a professional HTTP server that demonstrates:
 
 ### Planned Features
 - [ ] TLS/SSL support
-- [ ] Reverse proxy mode
 
 ---
 

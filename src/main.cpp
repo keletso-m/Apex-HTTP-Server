@@ -7,8 +7,10 @@
 #include <iostream>
 #include <csignal>
 #include <cstring>
+#include "rate_limiter.h"
 
 static TCPServer* g_server = nullptr;
+
   
 void handle_signal(int sig) {
     std::cout << "\n[INFO] Caught signal " << sig << ", shutting down...\n";
@@ -23,6 +25,7 @@ int main(int argc, char* argv[]) {
 
     // Load config first (logger not ready yet, Config warns to stderr)
     ServerConfig cfg = Config::load(config_path);
+    RateLimiter limiter(cfg.rate_limit_per_second); 
 
     // Init logger with values from config
     Logger::instance().init(cfg.log_file, LogLevel::DEBUG);
@@ -50,20 +53,25 @@ int main(int argc, char* argv[]) {
         return HttpParser::make_error(404, "Not found: " + req.path);
     });
 
+ auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
+        if (!limiter.allow()) {
+            HttpResponse res = HttpParser::make_error(429, "Rate limit exceeded");
+            res.keep_alive = false;   // safest default when request isnt parsed yet
+            return { res.serialize(), false };
+        }
 
-auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
-    if (raw.empty())
-        return { HttpParser::make_error(400, "Empty request").serialize(), false };
+        if (raw.empty())
+            return { HttpParser::make_error(400, "Empty request").serialize(), false };
 
-    HttpRequest req = HttpParser::parse(raw);
-    if (!req.valid)
-        return { HttpParser::make_error(400, "Malformed HTTP request").serialize(), false };
+        HttpRequest req = HttpParser::parse(raw);
+        if (!req.valid)
+            return { HttpParser::make_error(400, "Malformed HTTP request").serialize(), false };
 
-    LOG_INFO(req.method + " " + req.path);
+        LOG_INFO(req.method + " " + req.path);
 
-    HttpResponse res = router.route(req);
-    return { res.serialize(), res.keep_alive };
-};
+        HttpResponse res = router.route(req);
+        return { res.serialize(), res.keep_alive };
+    };
 
     try {
        TCPServer server(cfg.host, cfg.port, cfg.backlog, cfg.threads, cfg.keep_alive_timeout);
