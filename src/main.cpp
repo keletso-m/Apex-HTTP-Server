@@ -67,6 +67,25 @@ auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
     HttpResponse res = router.route(req);
     return { res.serialize(), res.keep_alive };
 };
+ auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
+        if (!limiter.allow()) {
+            HttpResponse res = HttpParser::make_error(429, "Rate limit exceeded");
+            res.keep_alive = false;   // safest default when request isnt parsed yet
+            return { res.serialize(), false };
+        }
+
+        if (raw.empty())
+            return { HttpParser::make_error(400, "Empty request").serialize(), false };
+
+        HttpRequest req = HttpParser::parse(raw);
+        if (!req.valid)
+            return { HttpParser::make_error(400, "Malformed HTTP request").serialize(), false };
+
+        LOG_INFO(req.method + " " + req.path);
+
+        HttpResponse res = router.route(req);
+        return { res.serialize(), res.keep_alive };
+    };
 
     try {
        TCPServer server(cfg.host, cfg.port, cfg.backlog, cfg.threads, cfg.keep_alive_timeout);
