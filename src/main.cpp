@@ -53,7 +53,6 @@ int main(int argc, char* argv[]) {
         return HttpParser::make_error(404, "Not found: " + req.path);
     });
 
-};
  auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
         if (!limiter.allow()) {
             HttpResponse res = HttpParser::make_error(429, "Rate limit exceeded");
