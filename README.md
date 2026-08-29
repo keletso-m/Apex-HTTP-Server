@@ -233,7 +233,7 @@ This project was built by learning from:
 - [x] Benchmarking suite
 - [x] Performance profiling
 - [x] Memory optimization
-- [ ] Rate limiting
+- [x] Rate limiting
 
 ### phase 6: Testing
 - [ ] Unit tests for router 
