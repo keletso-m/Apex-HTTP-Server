@@ -23,6 +23,9 @@ ServerConfig Config::load(const std::string& filepath) {
     cfg.log_file        = to_str(values, "log_file",       cfg.log_file);
     cfg.keep_alive_timeout = to_int(values, "keep_alive_timeout", cfg.keep_alive_timeout);
     cfg.request_timeout    = to_int(values, "request_timeout",    cfg.request_timeout);
+        cfg.keep_alive_timeout = to_int(values, "keep_alive_timeout", cfg.keep_alive_timeout);
+    cfg.request_timeout    = to_int(values, "request_timeout",    cfg.request_timeout);
+    cfg.rate_limit_per_second = to_int(values, "rate_limit_per_second", cfg.rate_limit_per_second);
 
     LOG_INFO("Config loaded from " + filepath);
     return cfg;
