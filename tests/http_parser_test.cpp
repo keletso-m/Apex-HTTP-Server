@@ -22,3 +22,28 @@ TEST(HttpParserTest, RejectsRequestWithNoHeaderTerminator) {
     HttpRequest req = HttpParser::parse("GET / HTTP/1.1\r\nHost: localhost\r\n");
     EXPECT_FALSE(req.valid);
 }
+
+// keep alive and overrides 
+TEST(HttpParserTest, Http11DefaultsToKeepAlive) {
+    std::string raw = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n";
+    HttpRequest req = HttpParser::parse(raw);
+    EXPECT_TRUE(req.keep_alive);
+}
+
+TEST(HttpParserTest, Http10DefaultsToClose) {
+    std::string raw = "GET / HTTP/1.0\r\nHost: localhost\r\n\r\n";
+    HttpRequest req = HttpParser::parse(raw);
+    EXPECT_FALSE(req.keep_alive);
+}
+
+TEST(HttpParserTest, ExplicitCloseHeaderOverridesHttp11Default) {
+    std::string raw = "GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n";
+    HttpRequest req = HttpParser::parse(raw);
+    EXPECT_FALSE(req.keep_alive);
+}
+
+TEST(HttpParserTest, ExplicitKeepAliveHeaderOverridesHttp10Default) {
+    std::string raw = "GET / HTTP/1.0\r\nHost: localhost\r\nConnection: keep-alive\r\n\r\n";
+    HttpRequest req = HttpParser::parse(raw);
+    EXPECT_TRUE(req.keep_alive);
+}
