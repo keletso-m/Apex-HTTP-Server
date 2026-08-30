@@ -68,6 +68,22 @@ clean:
 	rm -rf $(BUILD) bin
 	@echo "Cleaned."
 
+# Fuzzing libFuzzer + AddressSanitizer, requires clang
+FUZZ_BIN := bin/apex-fuzz-parser
+
+.PHONY: fuzz fuzz-run
+
+fuzz:
+	@mkdir -p bin corpus/parser
+	clang++ -std=c++17 -g -O1 -I./include \
+		-fsanitize=fuzzer,address \
+		src/http/http_parser.cpp tests/fuzz/http_parser_fuzzer.cpp \
+		-o $(FUZZ_BIN)
+	@echo "\n  Fuzz build successful → $(FUZZ_BIN)"
+
+fuzz-run: fuzz
+	./$(FUZZ_BIN) corpus/parser -max_total_time=60
+
 # benchmark 
 # sudo apt install wrk
 benchmark: all
