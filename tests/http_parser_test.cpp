@@ -64,3 +64,40 @@ TEST(HttpParserTest, LowercaseConnectionHeaderIsRecognized) {
     HttpRequest req = HttpParser::parse(raw);
     EXPECT_FALSE(req.keep_alive);
 }
+// content length and body parsing
+TEST(HttpParserTest, ParsesBodyExactlyContentLengthBytes) {
+    std::string raw = "POST /submit HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello";
+    HttpRequest req = HttpParser::parse(raw);
+
+    EXPECT_TRUE(req.valid);
+    EXPECT_EQ(req.body, "hello");
+}
+
+TEST(HttpParserTest, RejectsWhenBodyShorterThanContentLength) {
+    // Content-Length claims 10 bytes
+    // this is the incomplete-request case the parser must not silently truncate.
+    std::string raw = "POST /submit HTTP/1.1\r\nContent-Length: 10\r\n\r\nhello";
+    HttpRequest req = HttpParser::parse(raw);
+    EXPECT_FALSE(req.valid);
+}
+TEST(HttpParserTest, IgnoresExtraDataBeyondContentLength) {
+    // Simulates a pipelined second request sitting right after this one's body 
+    // parser must only take exactly Content-Length bytes, not everything remaining.
+    std::string raw = "POST /submit HTTP/1.1\r\nContent-Length: 5\r\n\r\nhelloGET /next HTTP/1.1\r\n\r\n";
+    HttpRequest req = HttpParser::parse(raw);
+
+    EXPECT_TRUE(req.valid);
+    EXPECT_EQ(req.body, "hello");
+}
+
+TEST(HttpParserTest, NoContentLengthMeansEmptyBody) {
+    std::string raw = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n";
+    HttpRequest req = HttpParser::parse(raw);
+    EXPECT_TRUE(req.body.empty());
+}
+
+TEST(HttpParserTest, RejectsInvalidContentLengthValue) {
+    std::string raw = "POST /submit HTTP/1.1\r\nContent-Length: notanumber\r\n\r\nhello";
+    HttpRequest req = HttpParser::parse(raw);
+    EXPECT_FALSE(req.valid);
+}
