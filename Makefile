@@ -15,6 +15,29 @@ SRCS := src/main.cpp \
         $(wildcard src/utils/*.cpp)
 
 OBJS := $(patsubst %.cpp, $(BUILD)/%.o, $(SRCS))
+# Testing
+TEST_SRCS := $(wildcard tests/*.cpp)
+TEST_OBJS := $(patsubst tests/%.cpp, $(BUILD)/tests/%.o, $(TEST_SRCS))
+TEST_BIN  := bin/apex-tests
+
+# All object files except main.o, main.cpp has its own main(), which
+# conflicts with gtest_main's main() at link time.
+LIB_OBJS := $(filter-out $(BUILD)/src/main.o, $(OBJS))
+
+.PHONY: test
+
+test: CXXFLAGS += -g -O0
+test: dirs $(TEST_BIN)
+	./$(TEST_BIN)
+
+$(TEST_BIN): $(LIB_OBJS) $(TEST_OBJS)
+	@mkdir -p bin
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -lgtest -lgtest_main -pthread
+	@echo "\n  Test build successful → $(TEST_BIN)"
+
+$(BUILD)/tests/%.o: tests/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 #  Targets and rules
 
