@@ -238,7 +238,7 @@ This project was built by learning from:
 ### phase 6: Testing
 - [x] Unit tests for router 
 - [x] HTTP parser tests
-- [ ] intergrations tests
+- [x] intergrations tests
 - [ ] load tests
 - [ ] fuzz testing 
 

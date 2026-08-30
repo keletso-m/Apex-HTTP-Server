@@ -1,0 +1,152 @@
+#include <gtest/gtest.h>
+#include "tcp_server.h"
+#include "http_parser.h"
+#include "router.h"
+
+#include <thread>
+#include <chrono>
+#include <cstring>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+namespace {
+
+class TestClient {
+public:
+    bool connect_to(int port) {
+        fd_ = socket(AF_INET, SOCK_STREAM, 0);
+        if (fd_ < 0) return false;
+
+        sockaddr_in addr{};
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(port);
+        addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+        return connect(fd_, (sockaddr*)&addr, sizeof(addr)) == 0;
+    }
+
+    std::string send_and_receive(const std::string& request) {
+        send(fd_, request.c_str(), request.size(), 0);
+
+        char buf[8192] = {};
+        ssize_t n = recv(fd_, buf, sizeof(buf) - 1, 0);
+        return std::string(buf, n > 0 ? n : 0);
+    }
+
+    void close_conn() {
+        if (fd_ >= 0) { close(fd_); fd_ = -1; }
+    }
+
+    ~TestClient() { close_conn(); }
+
+private:
+    int fd_ = -1;
+};
+
+Router build_test_router() {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
+    router.set_fallback([](const HttpRequest& req) {
+        return HttpParser::make_error(404, "Not found: " + req.path);
+    });
+    return router;
+}
+}
+// namespace 
+class IntegrationTest : public ::testing::Test {
+protected:
+    static constexpr int TEST_PORT = 18080;
+
+    void SetUp() override {
+        router_ = build_test_router();
+
+        auto handler = [this](int /*fd*/, const std::string& raw) -> HandlerResult {
+            if (raw.empty())
+                return { HttpParser::make_error(400, "Empty request").serialize(), false };
+
+            HttpRequest req = HttpParser::parse(raw);
+            if (!req.valid)
+                return { HttpParser::make_error(400, "Malformed HTTP request").serialize(), false };
+
+            HttpResponse res = router_.route(req);
+            return { res.serialize(), res.keep_alive };
+        };
+
+        server_ = std::make_unique<TCPServer>("127.0.0.1", TEST_PORT, 10, 2, 5);
+
+        server_thread_ = std::thread([this, handler]() {
+            server_->run(handler);
+        });
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+
+    void TearDown() override {
+        server_->stop();
+        if (server_thread_.joinable()) server_thread_.join();
+        server_.reset();
+    }
+
+    Router router_;
+    std::unique_ptr<TCPServer> server_;
+    std::thread server_thread_;
+};
+TEST_F(IntegrationTest, BasicGetReturns200) {
+    TestClient client;
+    ASSERT_TRUE(client.connect_to(IntegrationTest::TEST_PORT));
+
+    std::string response = client.send_and_receive(
+        "GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+
+    EXPECT_NE(response.find("HTTP/1.1 200 OK"), std::string::npos);
+    EXPECT_NE(response.find("OK"), std::string::npos);
+}
+
+TEST_F(IntegrationTest, UnknownPathReturns404) {
+    TestClient client;
+    ASSERT_TRUE(client.connect_to(IntegrationTest::TEST_PORT));
+
+    std::string response = client.send_and_receive(
+        "GET /nonexistent HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+
+    EXPECT_NE(response.find("HTTP/1.1 404"), std::string::npos);
+}
+TEST_F(IntegrationTest, ConnectionCloseHeaderIsRespected) {
+    TestClient client;
+    ASSERT_TRUE(client.connect_to(IntegrationTest::TEST_PORT));
+
+    std::string response = client.send_and_receive(
+        "GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+
+    EXPECT_NE(response.find("Connection: close"), std::string::npos);
+}
+TEST_F(IntegrationTest, KeepAliveAllowsSecondRequestOnSameConnection) {
+    TestClient client;
+    ASSERT_TRUE(client.connect_to(IntegrationTest::TEST_PORT));
+
+    std::string first = client.send_and_receive(
+        "GET /health HTTP/1.1\r\nHost: localhost\r\n\r\n");
+    EXPECT_NE(first.find("HTTP/1.1 200 OK"), std::string::npos);
+    EXPECT_NE(first.find("Connection: keep-alive"), std::string::npos);
+
+    std::string second = client.send_and_receive(
+        "GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+    EXPECT_NE(second.find("HTTP/1.1 200 OK"), std::string::npos);
+    EXPECT_NE(second.find("Connection: close"), std::string::npos);
+}
+TEST_F(IntegrationTest, HeadRequestOmitsBody) {
+    TestClient client;
+    ASSERT_TRUE(client.connect_to(IntegrationTest::TEST_PORT));
+
+    std::string response = client.send_and_receive(
+        "HEAD /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+
+    EXPECT_NE(response.find("HTTP/1.1 200 OK"), std::string::npos);
+    size_t header_end = response.find("\r\n\r\n");
+    ASSERT_NE(header_end, std::string::npos);
+    std::string body_part = response.substr(header_end + 4);
+    EXPECT_TRUE(body_part.empty());
+}
