@@ -239,7 +239,7 @@ This project was built by learning from:
 - [x] Unit tests for router 
 - [x] HTTP parser tests
 - [x] intergrations tests
-- [ ] fuzz testing 
+- [x] fuzz testing 
 
 ### Phase 7: Deployment 
 - [ ] Docker container
