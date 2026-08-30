@@ -15,3 +15,51 @@ HttpRequest make_request(const std::string& method, const std::string& path, boo
 }
 
 }
+// exact vs prefix matching 
+TEST(RouterTest, MatchesExactPath) {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
+
+    HttpResponse res = router.route(make_request("GET", "/health"));
+    EXPECT_EQ(res.status_code, 200);
+    EXPECT_EQ(res.body, "OK");
+}
+TEST(RouterTest, ExactRouteDoesNotMatchLongerPath) {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
+    router.set_fallback([](const HttpRequest&) {
+        return HttpParser::make_error(404, "Not found");
+    });
+
+    HttpResponse res = router.route(make_request("GET", "/health/extra"));
+    EXPECT_EQ(res.status_code, 404);
+}
+
+TEST(RouterTest, MatchesPrefixRoute) {
+    Router router;
+    router.get_prefix("/static/", [](const HttpRequest& req) {
+        return HttpParser::make_response(200, "file:" + req.path, "text/plain");
+    });
+
+    HttpResponse res = router.route(make_request("GET", "/static/css/main.css"));
+    EXPECT_EQ(res.status_code, 200);
+    EXPECT_EQ(res.body, "file:/static/css/main.css");
+}
+TEST(RouterTest, FirstMatchingRouteWinsInRegistrationOrder) {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "specific", "text/plain");
+    });
+    router.get_prefix("/", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "catch-all", "text/plain");
+    });
+
+    HttpResponse res = router.route(make_request("GET", "/health"));
+    EXPECT_EQ(res.body, "specific");
+}
+
+// method handling
