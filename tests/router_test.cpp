@@ -128,4 +128,42 @@ TEST(RouterTest, NoMatchWithoutFallbackReturns404) {
     HttpResponse res = router.route(make_request("GET", "/anything"));
     EXPECT_EQ(res.status_code, 404);
 }
+// keep-alive propation 
+TEST(RouterTest, KeepAliveTrueIsCopiedFromRequestToResponse) {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
 
+    HttpResponse res = router.route(make_request("GET", "/health", /*keep_alive=*/true));
+    EXPECT_TRUE(res.keep_alive);
+}
+
+TEST(RouterTest, KeepAliveFalseIsCopiedFromRequestToResponse) {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
+
+    HttpResponse res = router.route(make_request("GET", "/health", /*keep_alive=*/false));
+    EXPECT_FALSE(res.keep_alive);
+}
+TEST(RouterTest, KeepAliveIsCopiedOnFallbackPath) {
+    Router router;
+    router.set_fallback([](const HttpRequest& req) {
+        return HttpParser::make_error(404, "Not found: " + req.path);
+    });
+
+    HttpResponse res = router.route(make_request("GET", "/nonexistent", /*keep_alive=*/false));
+    EXPECT_FALSE(res.keep_alive);
+}
+
+TEST(RouterTest, KeepAliveIsCopiedOn405Path) {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
+
+    HttpResponse res = router.route(make_request("DELETE", "/health", /*keep_alive=*/false));
+    EXPECT_FALSE(res.keep_alive);
+}
