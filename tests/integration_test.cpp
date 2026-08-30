@@ -137,3 +137,16 @@ TEST_F(IntegrationTest, KeepAliveAllowsSecondRequestOnSameConnection) {
     EXPECT_NE(second.find("HTTP/1.1 200 OK"), std::string::npos);
     EXPECT_NE(second.find("Connection: close"), std::string::npos);
 }
+TEST_F(IntegrationTest, HeadRequestOmitsBody) {
+    TestClient client;
+    ASSERT_TRUE(client.connect_to(IntegrationTest::TEST_PORT));
+
+    std::string response = client.send_and_receive(
+        "HEAD /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+
+    EXPECT_NE(response.find("HTTP/1.1 200 OK"), std::string::npos);
+    size_t header_end = response.find("\r\n\r\n");
+    ASSERT_NE(header_end, std::string::npos);
+    std::string body_part = response.substr(header_end + 4);
+    EXPECT_TRUE(body_part.empty());
+}
