@@ -104,3 +104,13 @@ TEST_F(IntegrationTest, BasicGetReturns200) {
     EXPECT_NE(response.find("HTTP/1.1 200 OK"), std::string::npos);
     EXPECT_NE(response.find("OK"), std::string::npos);
 }
+
+TEST_F(IntegrationTest, UnknownPathReturns404) {
+    TestClient client;
+    ASSERT_TRUE(client.connect_to(IntegrationTest::TEST_PORT));
+
+    std::string response = client.send_and_receive(
+        "GET /nonexistent HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+
+    EXPECT_NE(response.find("HTTP/1.1 404"), std::string::npos);
+}
