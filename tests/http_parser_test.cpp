@@ -101,3 +101,44 @@ TEST(HttpParserTest, RejectsInvalidContentLengthValue) {
     HttpRequest req = HttpParser::parse(raw);
     EXPECT_FALSE(req.valid);
 }
+// response serialization 
+TEST(HttpResponseTest, SerializeIncludesContentLength) {
+    HttpResponse res = HttpParser::make_response(200, "hello", "text/plain");
+    std::string out = res.serialize();
+
+    EXPECT_NE(out.find("Content-Length: 5"), std::string::npos);
+}
+
+TEST(HttpResponseTest, SerializeBodyAppearsExactlyOnce) {
+    // Regression test for the double-body serialize() bug.
+    HttpResponse res = HttpParser::make_response(200, "hello", "text/plain");
+    std::string out = res.serialize();
+
+    size_t first = out.find("hello");
+    ASSERT_NE(first, std::string::npos);
+    size_t second = out.find("hello", first + 1);
+    EXPECT_EQ(second, std::string::npos) << "Body appears more than once in serialized response";
+}
+TEST(HttpResponseTest, SkipBodyOmitsBodyEntirely) {
+    HttpResponse res = HttpParser::make_response(200, "hello", "text/plain");
+    res.skip_body = true;
+    std::string out = res.serialize();
+
+    EXPECT_EQ(out.find("hello"), std::string::npos);
+}
+
+TEST(HttpResponseTest, SerializeIncludesKeepAliveHeaderWhenSet) {
+    HttpResponse res = HttpParser::make_response(200, "ok", "text/plain");
+    res.keep_alive = true;
+    std::string out = res.serialize();
+
+    EXPECT_NE(out.find("Connection: keep-alive"), std::string::npos);
+}
+
+TEST(HttpResponseTest, SerializeIncludesCloseHeaderWhenNotKeepAlive) {
+    HttpResponse res = HttpParser::make_response(200, "ok", "text/plain");
+    res.keep_alive = false;
+    std::string out = res.serialize();
+
+    EXPECT_NE(out.find("Connection: close"), std::string::npos);
+}
