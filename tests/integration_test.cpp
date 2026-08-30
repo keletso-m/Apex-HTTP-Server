@@ -123,3 +123,17 @@ TEST_F(IntegrationTest, ConnectionCloseHeaderIsRespected) {
 
     EXPECT_NE(response.find("Connection: close"), std::string::npos);
 }
+TEST_F(IntegrationTest, KeepAliveAllowsSecondRequestOnSameConnection) {
+    TestClient client;
+    ASSERT_TRUE(client.connect_to(IntegrationTest::TEST_PORT));
+
+    std::string first = client.send_and_receive(
+        "GET /health HTTP/1.1\r\nHost: localhost\r\n\r\n");
+    EXPECT_NE(first.find("HTTP/1.1 200 OK"), std::string::npos);
+    EXPECT_NE(first.find("Connection: keep-alive"), std::string::npos);
+
+    std::string second = client.send_and_receive(
+        "GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+    EXPECT_NE(second.find("HTTP/1.1 200 OK"), std::string::npos);
+    EXPECT_NE(second.find("Connection: close"), std::string::npos);
+}
