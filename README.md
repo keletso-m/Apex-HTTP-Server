@@ -236,8 +236,8 @@ This project was built by learning from:
 - [x] Rate limiting
 
 ### phase 6: Testing
-- [ ] Unit tests for router 
-- [ ] HTTP parser tests
+- [x] Unit tests for router 
+- [x] HTTP parser tests
 - [ ] intergrations tests
 - [ ] load tests
 - [ ] fuzz testing 
