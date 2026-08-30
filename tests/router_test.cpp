@@ -63,3 +63,50 @@ TEST(RouterTest, FirstMatchingRouteWinsInRegistrationOrder) {
 }
 
 // method handling
+TEST(RouterTest, UnsupportedMethodReturns405) {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
+
+    HttpResponse res = router.route(make_request("DELETE", "/health"));
+    EXPECT_EQ(res.status_code, 405);
+}
+
+TEST(RouterTest, MethodMismatchOnMatchedPathReturns405) {
+    Router router;
+    router.post("/submit", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "submitted", "text/plain");
+    });
+
+    HttpResponse res = router.route(make_request("GET", "/submit"));
+    EXPECT_EQ(res.status_code, 405);
+}
+TEST(RouterTest, HeadIsAllowedOnGetRoute) {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
+
+    HttpResponse res = router.route(make_request("HEAD", "/health"));
+    EXPECT_EQ(res.status_code, 200);
+}
+
+TEST(RouterTest, HeadRequestSetsSkipBody) {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
+
+    HttpResponse res = router.route(make_request("HEAD", "/health"));
+    EXPECT_TRUE(res.skip_body);
+}
+TEST(RouterTest, GetRequestDoesNotSetSkipBody) {
+    Router router;
+    router.get("/health", [](const HttpRequest&) {
+        return HttpParser::make_response(200, "OK", "text/plain");
+    });
+
+    HttpResponse res = router.route(make_request("GET", "/health"));
+    EXPECT_FALSE(res.skip_body);
+}
