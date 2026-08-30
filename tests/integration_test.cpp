@@ -114,3 +114,12 @@ TEST_F(IntegrationTest, UnknownPathReturns404) {
 
     EXPECT_NE(response.find("HTTP/1.1 404"), std::string::npos);
 }
+TEST_F(IntegrationTest, ConnectionCloseHeaderIsRespected) {
+    TestClient client;
+    ASSERT_TRUE(client.connect_to(IntegrationTest::TEST_PORT));
+
+    std::string response = client.send_and_receive(
+        "GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+
+    EXPECT_NE(response.find("Connection: close"), std::string::npos);
+}
