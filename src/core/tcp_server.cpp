@@ -219,6 +219,12 @@ void TCPServer::run(RequestHandler handler) {
     epoll_fd_ = -1;
 }
 
+size_t TCPServer::active_connections() const {
+    if (!connections_ || !conn_mutex_) return 0;
+    std::lock_guard<std::mutex> lock(*conn_mutex_);
+    return connections_->size();
+}
+
 void TCPServer::stop() {
     running_ = false;
     if (connections_ && conn_mutex_) {
