@@ -55,3 +55,42 @@ Router build_test_router() {
     return router;
 }
 }
+// namespace 
+class IntegrationTest : public ::testing::Test {
+protected:
+    static constexpr int TEST_PORT = 18080;
+
+    void SetUp() override {
+        router_ = build_test_router();
+
+        auto handler = [this](int /*fd*/, const std::string& raw) -> HandlerResult {
+            if (raw.empty())
+                return { HttpParser::make_error(400, "Empty request").serialize(), false };
+
+            HttpRequest req = HttpParser::parse(raw);
+            if (!req.valid)
+                return { HttpParser::make_error(400, "Malformed HTTP request").serialize(), false };
+
+            HttpResponse res = router_.route(req);
+            return { res.serialize(), res.keep_alive };
+        };
+
+        server_ = std::make_unique<TCPServer>("127.0.0.1", TEST_PORT, 10, 2, 5);
+
+        server_thread_ = std::thread([this, handler]() {
+            server_->run(handler);
+        });
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+
+    void TearDown() override {
+        server_->stop();
+        if (server_thread_.joinable()) server_thread_.join();
+        server_.reset();
+    }
+
+    Router router_;
+    std::unique_ptr<TCPServer> server_;
+    std::thread server_thread_;
+};
