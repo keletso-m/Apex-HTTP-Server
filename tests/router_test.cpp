@@ -110,3 +110,22 @@ TEST(RouterTest, GetRequestDoesNotSetSkipBody) {
     HttpResponse res = router.route(make_request("GET", "/health"));
     EXPECT_FALSE(res.skip_body);
 }
+
+// no match/ fallback 
+TEST(RouterTest, NoMatchWithFallbackCallsFallback) {
+    Router router;
+    router.set_fallback([](const HttpRequest& req) {
+        return HttpParser::make_error(404, "Not found: " + req.path);
+    });
+
+    HttpResponse res = router.route(make_request("GET", "/nonexistent"));
+    EXPECT_EQ(res.status_code, 404);
+}
+
+TEST(RouterTest, NoMatchWithoutFallbackReturns404) {
+    Router router;
+
+    HttpResponse res = router.route(make_request("GET", "/anything"));
+    EXPECT_EQ(res.status_code, 404);
+}
+
