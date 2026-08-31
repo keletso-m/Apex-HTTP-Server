@@ -1,4 +1,3 @@
-
 CXX      := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -I./include
 LDFLAGS  := -pthread  # fixed: was declared twice
