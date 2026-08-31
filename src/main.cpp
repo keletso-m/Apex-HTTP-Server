@@ -8,6 +8,8 @@
 #include <csignal>
 #include <cstring>
 #include "rate_limiter.h"
+#include "metrics.h"
+#include <sstream>
 
 static TCPServer* g_server = nullptr;
 
@@ -26,6 +28,7 @@ int main(int argc, char* argv[]) {
     // Load config first (logger not ready yet, Config warns to stderr)
     ServerConfig cfg = Config::load(config_path);
     RateLimiter limiter(cfg.rate_limit_per_second); 
+    Metrics metrics;
 
     // Init logger with values from config
     Logger::instance().init(cfg.log_file, LogLevel::DEBUG);
@@ -44,6 +47,20 @@ int main(int argc, char* argv[]) {
     router.get("/health", [](const HttpRequest&) {
         return HttpParser::make_response(200, "OK", "text/plain");
     });
+     // metrics endpoint
+    router.get("/metrics", [&](const HttpRequest&) {
+    std::ostringstream out;
+    out << "# HELP apex_requests_total Total HTTP requests received\n";
+    out << "# TYPE apex_requests_total counter\n";
+    out << "apex_requests_total " << metrics.total_requests() << "\n";
+    out << "# HELP apex_uptime_seconds Server uptime in seconds\n";
+    out << "# TYPE apex_uptime_seconds gauge\n";
+    out << "apex_uptime_seconds " << metrics.uptime_seconds() << "\n";
+    out << "# HELP apex_active_connections Current tracked connections\n";
+    out << "# TYPE apex_active_connections gauge\n";
+    out << "apex_active_connections " << (g_server ? g_server->active_connections() : 0) << "\n";
+    return HttpParser::make_response(200, out.str(), "text/plain; version=0.0.4");
+    });
     // static files as prefix catch all
     router.get_prefix("/", [&](const HttpRequest& req) {
     return file_handler.handle(req);
@@ -52,8 +69,11 @@ int main(int argc, char* argv[]) {
     router.set_fallback([](const HttpRequest& req) {
         return HttpParser::make_error(404, "Not found: " + req.path);
     });
+   
+
 
  auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
+        metrics.record_request();
         if (!limiter.allow()) {
             HttpResponse res = HttpParser::make_error(429, "Rate limit exceeded");
             res.keep_alive = false;   // safest default when request isnt parsed yet

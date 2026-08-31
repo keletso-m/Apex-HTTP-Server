@@ -1,6 +1,8 @@
+
 CXX      := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -I./include
 LDFLAGS  := -pthread  # fixed: was declared twice
+.DEFAULT_GOAL := all
 
 # Directories
 SRC_DIRS := src/core src/http src/handlers src/utils
