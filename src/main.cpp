@@ -8,6 +8,7 @@
 #include <csignal>
 #include <cstring>
 #include "rate_limiter.h"
+#include "metrics.h"
 
 static TCPServer* g_server = nullptr;
 
@@ -26,6 +27,7 @@ int main(int argc, char* argv[]) {
     // Load config first (logger not ready yet, Config warns to stderr)
     ServerConfig cfg = Config::load(config_path);
     RateLimiter limiter(cfg.rate_limit_per_second); 
+    Metrics metrics;
 
     // Init logger with values from config
     Logger::instance().init(cfg.log_file, LogLevel::DEBUG);
