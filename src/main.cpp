@@ -9,6 +9,7 @@
 #include <cstring>
 #include "rate_limiter.h"
 #include "metrics.h"
+#include <sstream>
 
 static TCPServer* g_server = nullptr;
 
@@ -54,6 +55,20 @@ int main(int argc, char* argv[]) {
     router.set_fallback([](const HttpRequest& req) {
         return HttpParser::make_error(404, "Not found: " + req.path);
     });
+    // metrics endpoint
+    router.get("/metrics", [&](const HttpRequest&) {
+    std::ostringstream out;
+    out << "# HELP apex_requests_total Total HTTP requests received\n";
+    out << "# TYPE apex_requests_total counter\n";
+    out << "apex_requests_total " << metrics.total_requests() << "\n";
+    out << "# HELP apex_uptime_seconds Server uptime in seconds\n";
+    out << "# TYPE apex_uptime_seconds gauge\n";
+    out << "apex_uptime_seconds " << metrics.uptime_seconds() << "\n";
+    out << "# HELP apex_active_connections Current tracked connections\n";
+    out << "# TYPE apex_active_connections gauge\n";
+    out << "apex_active_connections " << (g_server ? g_server->active_connections() : 0) << "\n";
+    return HttpParser::make_response(200, out.str(), "text/plain; version=0.0.4");
+});
 
  auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
         if (!limiter.allow()) {
