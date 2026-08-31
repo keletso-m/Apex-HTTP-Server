@@ -47,15 +47,7 @@ int main(int argc, char* argv[]) {
     router.get("/health", [](const HttpRequest&) {
         return HttpParser::make_response(200, "OK", "text/plain");
     });
-    // static files as prefix catch all
-    router.get_prefix("/", [&](const HttpRequest& req) {
-    return file_handler.handle(req);
-    });
-    // 405 for POST/PUT/DELETE on any path
-    router.set_fallback([](const HttpRequest& req) {
-        return HttpParser::make_error(404, "Not found: " + req.path);
-    });
-    // metrics endpoint
+     // metrics endpoint
     router.get("/metrics", [&](const HttpRequest&) {
     std::ostringstream out;
     out << "# HELP apex_requests_total Total HTTP requests received\n";
@@ -68,7 +60,16 @@ int main(int argc, char* argv[]) {
     out << "# TYPE apex_active_connections gauge\n";
     out << "apex_active_connections " << (g_server ? g_server->active_connections() : 0) << "\n";
     return HttpParser::make_response(200, out.str(), "text/plain; version=0.0.4");
-});
+    });
+    // static files as prefix catch all
+    router.get_prefix("/", [&](const HttpRequest& req) {
+    return file_handler.handle(req);
+    });
+    // 405 for POST/PUT/DELETE on any path
+    router.set_fallback([](const HttpRequest& req) {
+        return HttpParser::make_error(404, "Not found: " + req.path);
+    });
+   
 
 
  auto handler = [&](int /*client_fd*/, const std::string& raw) -> HandlerResult {
