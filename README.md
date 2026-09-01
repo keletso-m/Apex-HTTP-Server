@@ -242,9 +242,9 @@ This project was built by learning from:
 - [x] fuzz testing 
 
 ### Phase 7: Deployment 
-- [ ] Docker container
+- [x] Docker container
 - [ ] systemd service
-- [ ] Monitoring (Prometheus)
+- [x] Monitoring (Prometheus)
 - [ ] Documentation
 
 ---

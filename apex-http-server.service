@@ -1,0 +1,22 @@
+[Unit]
+Description=Apex HTTP Server
+After=network.target
+
+[Service]
+Type=simple
+User=apex
+Group=apex
+WorkingDirectory=/opt/apex-http-server
+ExecStart=/opt/apex-http-server/bin/apex-server /opt/apex-http-server/config/server.conf
+Restart=on-failure
+RestartSec=5
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/apex-http-server/logs
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
