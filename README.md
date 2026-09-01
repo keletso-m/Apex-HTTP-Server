@@ -245,7 +245,7 @@ This project was built by learning from:
 - [x] Docker container
 - [X] systemd service
 - [x] Monitoring (Prometheus)
-- [ ] Documentation
+- [x] Documentation
 
 ---
 
