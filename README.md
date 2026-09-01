@@ -243,7 +243,7 @@ This project was built by learning from:
 
 ### Phase 7: Deployment 
 - [x] Docker container
-- [ ] systemd service
+- [X] systemd service
 - [x] Monitoring (Prometheus)
 - [ ] Documentation
 
