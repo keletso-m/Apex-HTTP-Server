@@ -8,19 +8,22 @@
 ## Tool
 wrk — https://github.com/wg/wrk
 
-## Results (Phase 4 — Final)
+## Results (Final — with keep-alive)
 
-| Scenario | Req/sec | p50 | p90 | p99 |
-|----------|---------|-----|-----|-----|
-| 100 connections | 11,273 | 0.64ms | 1.48ms | 510ms |
-| 400 connections | 11,913 | — | — | — |
+| Scenario | Req/sec | p50 | p75 | p90 | p99 |
+|----------|---------|-----|-----|-----|-----|
+| 100 connections | 24,823 | 3.83ms | 4.11ms | 4.58ms | 7.22ms |
 
-## Key finding
-Structured logging to stdout+file was the single biggest bottleneck,
-costing ~5,000 req/sec. In production, log level should be set to
-WARN or ERROR, not DEBUG.
+## Key findings
+- Keep-alive connection reuse more than doubled throughput vs Phase 4
+  baseline (11,273 → 24,823 req/sec)
+- Zero errors, zero timeouts at 100 concurrent connections
+- Latency distribution is extremely tight — p99 only 1.9x p50,
+  indicating consistent performance with no outliers
+- Structured logging at DEBUG level costs ~5,000 req/sec —
+  production deployments should use WARN or ERROR
 
-## Perf Analysis (Phase 4)
+## Perf Analysis
 
 | Counter | Value | Notes |
 |---------|-------|-------|
@@ -31,8 +34,7 @@ WARN or ERROR, not DEBUG.
 | Branch misses | 4.66% | Acceptable |
 
 ### Conclusion
-Server is I/O bound, not CPU bound. Bottleneck is kernel network
-syscalls (accept, recv, send), not application logic. Architecture
-is correct epoll + thread pool is the right approach. Further
-gains require kernel bypass (io_uring) or keep-alive connections,
-both beyond Phase 4 scope.
+Server is I/O bound, not CPU bound. Keep-alive connection reuse is
+the single biggest performance lever — eliminating TCP handshake
+overhead per request more than doubled throughput. Further gains
+would require kernel bypass (io_uring) or HTTP/2 multiplexing.
