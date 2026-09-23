@@ -10,8 +10,9 @@ Logger& Logger::instance() {
     return inst;
 }
 
-void Logger::init(const std::string& log_file, LogLevel min_level) {
-    min_level_ = min_level;
+void Logger::init(const std::string& log_file, LogLevel file_level, LogLevel console_level) {
+    min_level_     = file_level;
+    console_level_ = console_level;
     if (!log_file.empty()) {
         file_.open(log_file, std::ios::app);
         if (!file_) std::cerr << "[WARN] Could not open log file: " << log_file << "\n";
