@@ -12,7 +12,10 @@ Logger& Logger::instance() {
 
 void init(const std::string& log_file = "", LogLevel file_level = LogLevel::INFO,
            LogLevel console_level = LogLevel::WARN){
+    LogLevel      min_level_     = LogLevel::INFO;  // gates the file
+    LogLevel      console_level_ = LogLevel::WARN;  // gates stdout
     min_level_ = min_level;
+    console_level_ = console_level;
     if (!log_file.empty()) {
         file_.open(log_file, std::ios::app);
         if (!file_) std::cerr << "[WARN] Could not open log file: " << log_file << "\n";
