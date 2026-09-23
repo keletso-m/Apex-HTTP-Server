@@ -10,7 +10,8 @@ class Logger {
 public:
     static Logger& instance();
 
-    void init(const std::string& log_file = "", LogLevel min_level = LogLevel::INFO);
+    void init(const std::string& log_file = "", LogLevel file_level = LogLevel::INFO,
+           LogLevel console_level = LogLevel::WARN);
     void log(LogLevel level, const std::string& message);
 
     void debug(const std::string& msg) { log(LogLevel::DEBUG, msg); }
