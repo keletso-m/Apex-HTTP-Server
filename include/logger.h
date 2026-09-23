@@ -23,6 +23,7 @@ private:
     Logger() = default;
     std::ofstream file_;
     LogLevel      min_level_ = LogLevel::INFO;
+    LogLevel      console_level_ = LogLevel::WARN;  // gates stdout
     
     std::mutex    mutex_;
     std::string level_str(LogLevel l) const;
