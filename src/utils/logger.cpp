@@ -20,12 +20,13 @@ void Logger::init(const std::string& log_file, LogLevel file_level, LogLevel con
 }
 
 void Logger::log(LogLevel level, const std::string& message) {
-    if (level < min_level_) return;
+    if (level < min_level_ && level < console_level_) return; // skip work if neither sink wants it
+
     std::string entry = "[" + timestamp() + "] [" + level_str(level) + "] " + message;
 
-    std::lock_guard<std::mutex> lock(mutex_);   
-    std::cout << entry << "\n";
-    if (file_.is_open()) file_ << entry << "\n";
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (level >= console_level_) std::cout << entry << "\n"; // now gated 
+    if (file_.is_open() && level >= min_level_) file_ << entry << "\n";
 }
 
 std::string Logger::level_str(LogLevel l) const {
