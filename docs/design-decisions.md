@@ -55,4 +55,13 @@ rather than a custom JSON schema or a bundled dashboard UI.
   visualized in Grafana,  rather than reinventing observability tooling
   that already exists and is better.
 
+## Benchmarking methodology
+- Benchmarks are run via `make benchmark`, which starts a fresh server
+  process before each `wrk` run, rather than reusing a long-running
+  instance.
+- **Why this matters**: a long-lived process accumulates state (larger
+  log files, prior connection history) that can skew results; a fresh
+  process per benchmark run gives reproducible numbers.
+- Current best result: ~24,800 req/sec, p50 ~4ms, p99 ~6ms at 100
+  concurrent connections (2 threads) — see `docs/benchmarks.md`.
 
