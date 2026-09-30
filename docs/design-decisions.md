@@ -7,7 +7,7 @@ Rather than relying on a framework to handle these details for me, I chose to wo
 
 The project was largely inspired by reading about how Nginx works internally and wanting to explore some of those concepts by implementing a server myself.
 
-# Concurrency model: epoll + thread pool
+## Concurrency model: epoll + thread pool
 Apex uses epoll for I/O event notification combined with a fixed-size worker thread pool of four threads, rather than creating a dedicated thread for every connection.
 
 - **Why not thread-per-connection**: A dedicated thread for every connection introduces significant memory and scheduling overhead. Each thread requires its own stack and incurs context-switching costs, making the model increasingly inefficient as the number of concurrent connections grows.
@@ -42,8 +42,15 @@ threshold, stdout.
 The parser only processes data already present in a single `recv()`
 buffer. Requests whose body isn't fully received in one read are
 rejected rather than buffered.
-- **Why**: The initial implementation assumes that the request body is available within a single read operation, which keeps the parsing and state-management logic simpler and easier to reason about while establishing the core server functionality.
-- **Known limitation**: The initial implementation assumes that the request body is available within a single read operation, which keeps the parsing and state-management logic simpler and easier to reason about while establishing the core server functionality.
+
+- **Why**: The initial implementation assumes the request body arrives in
+  a single read, which kept the parsing and state-management logic
+  simpler while establishing core server functionality first.
+- **Known limitation**: A request whose body spans multiple `recv()`
+  calls is currently rejected outright rather than buffered across reads.
+  This is a real correctness gap for larger request bodies split across
+  TCP segments, and is tracked as deferred work rather than something
+  the fuzzing found.
 
 ## Metrics
 Exposes `/metrics` in Prometheus text-exposition format
