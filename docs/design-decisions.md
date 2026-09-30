@@ -18,9 +18,23 @@ Apex uses epoll for I/O event notification combined with a fixed-size worker thr
 Global atomic counter with a fixed 1-second window (see `RateLimiter`).
 
 - **Known tradeoff**: the shared `std::atomic` counter creates cross-core
-  cache-line contention under high concurrency — confirmed via benchmarking
+  cache-line contention under high concurrency, confirmed via benchmarking
   (see Benchmarks section below).
 - **Planned improvement**: per-thread sharded counters (total limit divided
   across threads) to remove the shared atomic entirely, at the cost of the
   limit becoming approximate rather than exact.
+
+  ## Logging
+Synchronous logger writing to both a log file and, above a configurable
+threshold, stdout.
+
+- **Bug found and fixed**: the logger originally wrote every entry to
+  stdout unconditionally, regardless of level. This caused up to a 3x
+  throughput drop whenever a terminal was attached and rendering
+  output — worker threads blocked on synchronous terminal writes under load.
+  Fixed by adding a separate `console_level_` threshold (default WARN),
+  decoupling file logging from console logging.
+- **Known limitation**: still synchronous, a future iteration should
+  move logging off the request-handling thread entirely (queued/async
+  writer), so log I/O speed can never affect request latency.
 
