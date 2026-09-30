@@ -31,10 +31,28 @@ threshold, stdout.
 - **Bug found and fixed**: the logger originally wrote every entry to
   stdout unconditionally, regardless of level. This caused up to a 3x
   throughput drop whenever a terminal was attached and rendering
-  output — worker threads blocked on synchronous terminal writes under load.
+  output, worker threads blocked on synchronous terminal writes under load.
   Fixed by adding a separate `console_level_` threshold (default WARN),
   decoupling file logging from console logging.
 - **Known limitation**: still synchronous, a future iteration should
   move logging off the request-handling thread entirely (queued/async
   writer), so log I/O speed can never affect request latency.
+
+## HTTP parsing
+The parser only processes data already present in a single `recv()`
+buffer. Requests whose body isn't fully received in one read are
+rejected rather than buffered.
+- **Why**: The initial implementation assumes that the request body is available within a single read operation, which keeps the parsing and state-management logic simpler and easier to reason about while establishing the core server functionality.
+- **Known limitation**: The initial implementation assumes that the request body is available within a single read operation, which keeps the parsing and state-management logic simpler and easier to reason about while establishing the core server functionality.
+
+## Metrics
+Exposes `/metrics` in Prometheus text-exposition format
+(`apex_requests_total`, `apex_uptime_seconds`, `apex_active_connections`)
+rather than a custom JSON schema or a bundled dashboard UI.
+
+- **Why**: matches how real infrastructure (nginx, most production
+  services) exposes metrics, plain text scraped by Prometheus, then
+  visualized in Grafana,  rather than reinventing observability tooling
+  that already exists and is better.
+
 
