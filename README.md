@@ -6,6 +6,9 @@ A high-performance, production-grade HTTP/1.1 server built from scratch in C++ u
 > **Status:** v1.0.0 released
 > Core HTTP compliance, concurrency, testing, and deployment are complete. See the [Development Roadmap](#development-roadmap) below. TLS/SSL and reverse proxy mode are planned for a future release.
 
+For more details on the project's architecture, performance, and testing methodology, see:
+[Design Decisions](docs/design-decisions.md) · [Benchmarks](docs/benchmarks.md) · [Fuzz Testing](docs/fuzzer.md)
+
 ---
 
 ## Project Goals
