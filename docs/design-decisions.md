@@ -65,3 +65,13 @@ rather than a custom JSON schema or a bundled dashboard UI.
 - Current best result: ~24,800 req/sec, p50 ~4ms, p99 ~6ms at 100
   concurrent connections (2 threads) — see `docs/benchmarks.md`.
 
+## Security testing
+HTTP parser is fuzz-tested with libFuzzer + AddressSanitizer.
+See `docs/fuzzer.md` for methodology and results.
+
+## What's deliberately not implemented yet
+- TLS
+- Async/non-blocking logging
+- Chunked transfer-encoding, `Expect: 100-continue`
+- Config reload without restart
+- Multi-packet request body buffering
