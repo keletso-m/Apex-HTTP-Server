@@ -17,7 +17,7 @@ Build a professional HTTP server that demonstrates:
 - Production-grade observability and reliability
 - Performance optimization and benchmarking
 
-**This is not a framework wrapper — every line is written from scratch.**
+**This is not a framework wrapper, every line is written from scratch.**
 
 ---
 
