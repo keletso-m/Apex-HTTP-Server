@@ -14,5 +14,13 @@ Apex uses epoll for I/O event notification combined with a fixed-size worker thr
 - **Why epoll over select/poll**: epoll is designed for handling large numbers of file descriptors efficiently. Instead of repeatedly scanning the entire set of connections for readiness, it provides the application with the descriptors that are ready for I/O. This avoids the O(n) scanning overhead associated with select and poll as the number of connections increases.
 - **Thread pool size**: Apex uses four worker threads to process work concurrently without creating and destroying threads for individual connections. Keeping the pool fixed provides predictable resource usage while allowing multiple requests to be processed in parallel.
 
+## Rate limiting
+Global atomic counter with a fixed 1-second window (see `RateLimiter`).
 
+- **Known tradeoff**: the shared `std::atomic` counter creates cross-core
+  cache-line contention under high concurrency — confirmed via benchmarking
+  (see Benchmarks section below).
+- **Planned improvement**: per-thread sharded counters (total limit divided
+  across threads) to remove the shared atomic entirely, at the cost of the
+  limit becoming approximate rather than exact.
 
