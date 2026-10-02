@@ -1,7 +1,7 @@
 # Apex HTTP Server
 ![Build](https://github.com/keletso-m/Apex-HTTP-Server/actions/workflows/build.yml/badge.svg)
 
-A high-performance, production-grade HTTP/1.1 server built from scratch in C++ using Linux system calls.Inspired by Nginx.
+A high-performance, production-grade HTTP/1.1 server built from scratch in C++ using Linux system calls. It was Inspired by Nginx.
 
 > **Status:** v1.0.0 released
 > Core HTTP compliance, concurrency, testing, and deployment are complete. See the [Development Roadmap](#development-roadmap) below. TLS/SSL and reverse proxy mode are planned for a future release.
