@@ -40,8 +40,7 @@ Build a professional HTTP server that demonstrates:
 - [x] Explicit resource limits (max header size, URI length, body size)
 - [x] Global rate limiting (`429 Too Many Requests`)
 - [x] Prometheus-compatible `/metrics` endpoint
-- [ ] TLS/SSL support *(planned, next release)*
-- [ ] Reverse proxy mode *(planned, future release)*
+
 
 ---
 
